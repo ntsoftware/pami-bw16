@@ -1,24 +1,50 @@
-include .env
+FQBN := realtek:AmebaD:Ai-Thinker_BW16
 
-IMAGE_BIN = build/km0_km4_image2.bin
+ifeq ($(OS),Windows_NT)
+    PORT := COM3
+else
+    PORT := /dev/ttyUSB0
+endif
 
-SOURCES = src/app.cpp
+BAUDRATE := 115200
 
-build/km0_km4_image2.bin: build
+IMAGE_BIN := km0_km4_image2.bin
+BUILD_RELEASE := build/release
+BUILD_DEBUG := build/debug
 
-build: bw16.ino $(SOURCES)
+SOURCES := bw16.ino \
+    src/app.cpp
+
+all: release
+
+release: $(SOURCES)
 	arduino-cli compile \
-		--verbose \
 		--fqbn $(FQBN) \
-		$(if $(DEBUG),--optimize-for-debug) \
-		--build-path $(abspath $(dir $(IMAGE_BIN)))
+		--libraries libraries \
+		--build-path $(BUILD_RELEASE)
 
-flash: $(IMAGE_BIN)
+debug: $(SOURCES)
+	arduino-cli compile \
+		--fqbn $(FQBN) \
+		--optimize-for-debug \
+		--libraries libraries \
+		--build-path $(BUILD_DEBUG)
+
+upload-release: release
 	arduino-cli upload \
 		--fqbn $(FQBN) \
 		--port $(PORT) \
 		--upload-property upload.auto_mode=Enable \
-		--input-file $<
+		--input-file $(BUILD_RELEASE)/$(IMAGE_BIN)
+
+upload-debug: debug
+	arduino-cli upload \
+		--fqbn $(FQBN) \
+		--port $(PORT) \
+		--upload-property upload.auto_mode=Enable \
+		--input-file $(BUILD_DEBUG)/$(IMAGE_BIN)
+
+flash: upload-release
 
 monitor:
 	arduino-cli monitor \
@@ -27,7 +53,13 @@ monitor:
 		--config baudrate=$(BAUDRATE) \
 		--quiet
 
-clean:
-	rm -rf build
+ifeq ($(OS),Windows_NT)
+    RM := rd /s/q
+else
+    RM := rm -rf
+endif
 
-.PHONY: clean build monitor upload
+clean:
+	$(RM) build
+
+.PHONY: all clean debug release upload-debug upload-release flash monitor

@@ -1,67 +1,49 @@
 #include <Arduino.h>
+//#include <SdFat.h>
+//#include <XPT2046_Touchscreen.h>
+
+void task_blink_setup();
+
+#define CS_PIN  8
+// MOSI=11, MISO=12, SCK=13
+
+//XPT2046_Touchscreen ts(CS_PIN);
+#define TIRQ_PIN  2
+//XPT2046_Touchscreen ts(CS_PIN);  // Param 2 - NULL - No interrupts
+//XPT2046_Touchscreen ts(CS_PIN, 255);  // Param 2 - 255 - No interrupts
+//XPT2046_Touchscreen ts(CS_PIN, TIRQ_PIN);  // Param 2 - Touch IRQ Pin - interrupt enabled polling
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-  // initialize digital pin's from all 3 colors as an output.
-  pinMode(LED_R, OUTPUT);
-  pinMode(LED_G, OUTPUT);
-  pinMode(LED_B, OUTPUT);
+    task_blink_setup();
+
+    Serial.begin(115200);
+    //ts.begin();
+    //ts.setRotation(1);
+    while (!Serial && (millis() <= 1000));
 }
 
-// blink RED, GREEN, BLUE
-void blink() {
-  digitalWrite(LED_R, HIGH);  // turn the RED LED on (HIGH is the voltage level)
-  delay(1000);                // wait for a second
-  digitalWrite(LED_R, LOW);   // turn the RED LED off by making the voltage LOW
-  delay(1000);                // wait for a second
-  digitalWrite(LED_G, HIGH);  // turn the GREEN LED on (HIGH is the voltage level)
-  delay(1000);                // wait for a second
-  digitalWrite(LED_G, LOW);   // turn the GREEN LED off by making the voltage LOW
-  delay(1000);                // wait for a second
-  digitalWrite(LED_B, HIGH);  // turn the BLUE LED on (HIGH is the voltage level)
-  delay(1000);                // wait for a second
-  digitalWrite(LED_B, LOW);   // turn the BLUE LED off by making the voltage LOW
-  delay(1000);                // wait for a second
-}
-
-// fade RED and BLUE
-void fade() {
-  // fade RED in from min to max in increments of 5 points:
-  for (int fadeValue = 0; fadeValue <= 255; fadeValue += 5) {
-    // sets the value (range from 0 to 255):
-    analogWrite(LED_R, fadeValue);
-    // wait for 30 milliseconds to see the dimming effect
-    delay(30);
-  }
-
-  // fade RED out from max to min in increments of 5 points:
-  for (int fadeValue = 255; fadeValue >= 0; fadeValue -= 5) {
-    // sets the value (range from 0 to 255):
-    analogWrite(LED_R, fadeValue);
-    // wait for 30 milliseconds to see the dimming effect
-    delay(30);
-  }
-
-  // fade BLUE in from min to max in increments of 5 points:
-  for (int fadeValue = 0; fadeValue <= 255; fadeValue += 5) {
-    // sets the value (range from 0 to 255):
-    analogWrite(LED_B, fadeValue);
-    // wait for 30 milliseconds to see the dimming effect
-    delay(30);
-  }
-
-  // fade BLUE out from max to min in increments of 5 points:
-  for (int fadeValue = 255; fadeValue >= 0; fadeValue -= 5) {
-    // sets the value (range from 0 to 255):
-    analogWrite(LED_B, fadeValue);
-    // wait for 30 milliseconds to see the dimming effect
-    delay(30);
-  }
-}
+//void touch() {
+//    if (ts.touched()) {
+//        TS_Point p = ts.getPoint();
+//        Serial.print("Pressure = ");
+//        Serial.print(p.z);
+//        Serial.print(", x = ");
+//        Serial.print(p.x);
+//        Serial.print(", y = ");
+//        Serial.print(p.y);
+//        delay(30);
+//        Serial.println();
+//    }
+//}
 
 // the loop function runs over and over again forever
 void loop() {
-  blink();      // blink RED, GREEN, BLUE
-  fade();       // fade RED, BLUE
-  delay(1000);  // wait for a second
+    static int i = 0;
+    //touch();
+    Serial.print("main loop i=");
+    Serial.print(i);
+    Serial.println();
+    delay(100);
+    ++i;
 }

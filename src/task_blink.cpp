@@ -1,0 +1,74 @@
+#include <Arduino.h>
+
+static void fade();
+static void blink();
+static void task_func(const void *);
+
+// the setup function runs once when you press reset or power the board
+void task_blink_setup() {
+    // initialize digital pin's from all 3 colors as an output.
+    pinMode(LED_R, OUTPUT);
+    pinMode(LED_G, OUTPUT);
+    pinMode(LED_B, OUTPUT);
+
+    os_thread_create_arduino(task_func, NULL, OS_PRIORITY_NORMAL, DEFAULT_STACK_SIZE);
+}
+
+// blink RED, GREEN, BLUE
+static void blink() {
+    digitalWrite(LED_R, HIGH);  // turn the RED LED on (HIGH is the voltage level)
+    delay(1000);                // wait for a second
+    digitalWrite(LED_R, LOW);   // turn the RED LED off by making the voltage LOW
+    delay(1000);                // wait for a second
+    digitalWrite(LED_G, HIGH);  // turn the GREEN LED on (HIGH is the voltage level)
+    delay(1000);                // wait for a second
+    digitalWrite(LED_G, LOW);   // turn the GREEN LED off by making the voltage LOW
+    delay(1000);                // wait for a second
+    digitalWrite(LED_B, HIGH);  // turn the BLUE LED on (HIGH is the voltage level)
+    delay(1000);                // wait for a second
+    digitalWrite(LED_B, LOW);   // turn the BLUE LED off by making the voltage LOW
+    delay(1000);                // wait for a second
+}
+
+// fade RED and BLUE
+static void fade() {
+    // fade RED in from min to max in increments of 5 points:
+    for (int fadeValue = 0; fadeValue <= 255; fadeValue += 5) {
+        // sets the value (range from 0 to 255):
+        analogWrite(LED_R, fadeValue);
+        // wait for 30 milliseconds to see the dimming effect
+        delay(30);
+    }
+
+    // fade RED out from max to min in increments of 5 points:
+    for (int fadeValue = 255; fadeValue >= 0; fadeValue -= 5) {
+        // sets the value (range from 0 to 255):
+        analogWrite(LED_R, fadeValue);
+        // wait for 30 milliseconds to see the dimming effect
+        delay(30);
+    }
+
+    // fade BLUE in from min to max in increments of 5 points:
+    for (int fadeValue = 0; fadeValue <= 255; fadeValue += 5) {
+        // sets the value (range from 0 to 255):
+        analogWrite(LED_B, fadeValue);
+        // wait for 30 milliseconds to see the dimming effect
+        delay(30);
+    }
+
+    // fade BLUE out from max to min in increments of 5 points:
+    for (int fadeValue = 255; fadeValue >= 0; fadeValue -= 5) {
+        // sets the value (range from 0 to 255):
+        analogWrite(LED_B, fadeValue);
+        // wait for 30 milliseconds to see the dimming effect
+        delay(30);
+    }
+}
+
+static void task_func(const void *) {
+    while (1) {
+        blink();      // blink RED, GREEN, BLUE
+    //    fade();       // fade RED, BLUE
+        delay(1000);  // wait for a second
+    }
+}
