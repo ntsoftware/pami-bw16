@@ -47,6 +47,13 @@
 //------------------------------------------------------------------------------
 // SD card errors
 // See the SD Specification for command info.
+
+// > [!NOTE]
+// > The `SD_CARD_ERROR` macro must be undefined here
+// > It conflicts with a previous definition in the Realtek Ameba SDK in:
+// > .arduino15/packages/realtek/hardware/AmebaD/3.1.9/system/component/soc/realtek/amebad/fwlib/include/rtl8721dhp_sd.h
+#undef SD_CARD_ERROR
+
 /** Define error codes and brief description.  */
 #define SD_ERROR_CODE_LIST                                          \
   SD_CARD_ERROR(NONE, "No error")                                   \
