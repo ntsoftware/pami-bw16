@@ -6,7 +6,7 @@ else
     PORT := /dev/ttyUSB0
 endif
 
-BAUDRATE := 115200
+BAUDRATE := 9600
 
 IMAGE_BIN := km0_km4_image2.bin
 BUILD_RELEASE := build/release
