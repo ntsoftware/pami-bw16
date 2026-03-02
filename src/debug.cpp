@@ -7,7 +7,7 @@
 static osMutexDef(dbg);
 static osMutexId dbg_mutex_id;
 
-void dbg_init(void)
+void dbg_init()
 {
     Serial.begin(115200);
     dbg_mutex_id = osMutexCreate(osMutex(dbg));
@@ -33,5 +33,12 @@ void dbg_printf(const char *format, ...)
         Serial.write("...\n");
     }
 
+    osMutexRelease(dbg_mutex_id);
+}
+
+void dbg_write(const char *buf, size_t n)
+{
+    osMutexWait(dbg_mutex_id, osWaitForever);
+    Serial.write(buf, n);
     osMutexRelease(dbg_mutex_id);
 }
