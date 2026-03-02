@@ -1,17 +1,21 @@
 #include <Arduino.h>
+#include <cmsis_os.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include "debug.h"
 
-static uint32_t dbg_sem;
+static osMutexDef(dbg);
+static osMutexId dbg_mutex_id;
 
 void dbg_init(void)
 {
     Serial.begin(115200);
-    dbg_sem = os_semaphore_create_arduino(1);
+    dbg_mutex_id = osMutexCreate(osMutex(dbg));
 }
 
 void dbg_printf(const char *format, ...)
 {
-    os_semaphore_wait_arduino(dbg_sem, -1);
+    osMutexWait(dbg_mutex_id, osWaitForever);
 
     static char buf[256];
 
@@ -29,5 +33,5 @@ void dbg_printf(const char *format, ...)
         Serial.write("...\n");
     }
 
-    os_semaphore_release_arduino(dbg_sem);
+    osMutexRelease(dbg_mutex_id);
 }

@@ -1,21 +1,21 @@
-#include <Arduino.h>
-
+#include <cmsis_os.h>
 #include "debug.h"
 
-static void task_func(const void *);
+static void task1(const void *);
+static osThreadDef(task1, osPriorityNormal, 1, 4096);
 
 void task1_init()
 {
-    uint32_t tid = os_thread_create_arduino(task_func, NULL, OS_PRIORITY_NORMAL, 4096);
-    dbg_printf("task1: thread id=%u\n", tid);
+    osThreadId id = osThreadCreate(osThread(task1), NULL);
+    dbg_printf("task1: thread id=%u\n", id);
 }
 
-static void task_func(const void *)
+static void task1(const void *)
 {
     int i = 0;
     while (1) {
         dbg_printf("task1: loop %d\n", i);
-        delay(100);
+        osDelay(100);
         ++i;
     }
 }
