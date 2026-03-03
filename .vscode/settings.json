@@ -2,5 +2,7 @@
     "clangd.arguments": [
         "--compile-commands-dir=build/release"
     ],
+    "files.encoding": "utf8",
+    "files.eol": "\n",
     "editor.inlayHints.enabled": "offUnlessPressed"
 }
