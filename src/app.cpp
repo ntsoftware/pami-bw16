@@ -3,6 +3,7 @@
 #include "config.h"
 #include "debug.h"
 #include "sdcard.h"
+#include "mux.h"
 
 void task1_init();
 void task2_init();
@@ -12,6 +13,7 @@ static char buf[1024];
 void setup()
 {
     dbg_init();
+    mux_init();
     sd_init();
 
     int n = sd_read_file("config.ini", buf, sizeof(buf));
