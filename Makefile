@@ -17,6 +17,13 @@ SOURCES := bw16.ino \
 
 all: release
 
+compile-db: $(SOURCES)
+	arduino-cli compile \
+		--fqbn $(FQBN) \
+		--libraries libraries \
+		--only-compilation-database \
+		--build-path $(BUILD_RELEASE)
+
 release: $(SOURCES)
 	arduino-cli compile \
 		--fqbn $(FQBN) \
@@ -62,4 +69,4 @@ endif
 clean:
 	$(RM) build
 
-.PHONY: all clean debug release upload-debug upload-release flash monitor
+.PHONY: all clean debug release upload-debug upload-release flash monitor compile-db
