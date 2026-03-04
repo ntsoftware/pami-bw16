@@ -30,10 +30,5 @@ void setup()
 
 void loop()
 {
-    int i = 0;
-    while (1) {
-        dbg_printf("main: loop %d\n", i);
-        osDelay(1000);
-        ++i;
-    }
+    osDelay(1000);
 }

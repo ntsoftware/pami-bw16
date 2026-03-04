@@ -15,7 +15,7 @@ static void task1(const void *)
     int i = 0;
     while (1) {
         dbg_printf("task1: loop %d\n", i);
-        osDelay(100);
+        osDelay(1000);
         ++i;
     }
 }

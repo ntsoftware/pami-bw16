@@ -55,7 +55,7 @@ static SdFs sd;
 
 void sd_init()
 {
-    if (!sd.begin(SdSpiConfig(SPI_SS, DEDICATED_SPI, SD_SCK_MHZ(16), &sd_shared_spi))) {
+    if (!sd.begin(SdSpiConfig(SPI_SS, DEDICATED_SPI, SD_SCK_MHZ(40), &sd_shared_spi))) {
         dbg_printf("sdcard initialization failed (%d)\n", sd.sdErrorCode());
     }
 }
