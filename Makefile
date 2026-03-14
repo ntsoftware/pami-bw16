@@ -12,7 +12,7 @@ IMAGE_BIN := km0_km4_image2.bin
 BUILD_RELEASE := build/release
 BUILD_DEBUG := build/debug
 
-SOURCES := bw16.ino \
+SOURCES := pami-bw16.ino \
     src/app.cpp
 
 all: release
