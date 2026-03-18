@@ -2,3 +2,6 @@ CompileFlags:
   Add: [
     "--target=arm-none-eabi"
   ]
+
+Completion:
+  HeaderInsertion: Never

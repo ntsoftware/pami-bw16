@@ -1,7 +1,18 @@
 #pragma once
 
 #include <stddef.h>
+#include <cmsis_os.h>
 
-void dbg_init();
-void dbg_printf(const char *format, ...);
-void dbg_write(const char *buf, size_t n);
+class Debug {
+public:
+    Debug();
+    void begin();
+    void printf(const char *format, ...);
+    void write(const char *buf, size_t n);
+
+private:
+    osMutexDef(mutex);
+    osMutexId mutex_id;
+};
+
+extern Debug dbg;

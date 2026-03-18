@@ -2,8 +2,8 @@
 #include <cmsis_os.h>
 #include "config.h"
 #include "debug.h"
-#include "sdcard.h"
 #include "mux.h"
+#include "sdcard.h"
 
 void task1_init();
 void task2_init();
@@ -12,16 +12,17 @@ static char buf[1024];
 
 void setup()
 {
-    dbg_init();
-    mux_init();
-    sd_init();
+    dbg.begin();
 
-    int n = sd_read_file("config.ini", buf, sizeof(buf));
+    hal::mux.begin();
+    hal::sd.begin();
+
+    int n = hal::sd.read_file("config.ini", buf, sizeof(buf));
     if (n > 0) {
-        cfg_parse(buf, n);
-        cfg_print();
+        cfg.parse(buf, n);
+        cfg.print();
     } else {
-        dbg_printf("configuration file not found\n");
+        dbg.printf("configuration file not found\n");
     }
 
     task1_init();

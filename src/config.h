@@ -3,16 +3,17 @@
 #include <stddef.h>
 #include "IPAddress.h"
 
-struct config {
+struct Config {
     char ssid[64];
     char password[64];
     char hostname[16];
     IPAddress local_ip;
     IPAddress subnet_mask;
     IPAddress gateway_ip;
+
+    Config();
+    void print();
+    void parse(const char *buf, size_t n);
 };
 
-extern struct config cfg;
-
-void cfg_print();
-void cfg_parse(const char *buf, size_t n);
+extern Config cfg;

@@ -1,21 +1,23 @@
 #include <Arduino.h>
-#include <cmsis_os.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include "debug.h"
 
-static osMutexDef(dbg);
-static osMutexId dbg_mutex_id;
+Debug dbg;
 
-void dbg_init()
+Debug::Debug()
 {
-    Serial.begin(115200);
-    dbg_mutex_id = osMutexCreate(osMutex(dbg));
+    mutex_id = osMutexCreate(osMutex(mutex));
 }
 
-void dbg_printf(const char *format, ...)
+void Debug::begin()
 {
-    osMutexWait(dbg_mutex_id, osWaitForever);
+    Serial.begin(115200);
+}
+
+void Debug::printf(const char *format, ...)
+{
+    osMutexWait(mutex_id, osWaitForever);
 
     static char buf[256];
 
@@ -33,12 +35,12 @@ void dbg_printf(const char *format, ...)
         Serial.write("...\n");
     }
 
-    osMutexRelease(dbg_mutex_id);
+    osMutexRelease(mutex_id);
 }
 
-void dbg_write(const char *buf, size_t n)
+void Debug::write(const char *buf, size_t n)
 {
-    osMutexWait(dbg_mutex_id, osWaitForever);
+    osMutexWait(mutex_id, osWaitForever);
     Serial.write(buf, n);
-    osMutexRelease(dbg_mutex_id);
+    osMutexRelease(mutex_id);
 }

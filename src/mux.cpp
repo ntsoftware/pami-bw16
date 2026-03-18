@@ -1,66 +1,101 @@
 #include <Arduino.h>
-#include <cmsis_os.h>
 #include "SPI.h"
+#include "debug.h"
 #include "mux.h"
 
-static osMutexDef(mux);
-static osMutexId mux_mutex_id;
+hal::Mux hal::mux;
 
 #define MUX_A0 PA15
 #define MUX_A1 PA30
 #define MUX_A2 PA26
 
-void mux_init()
+// A[0:2]
+// 0 0 0  TFT_CS
+// 1 0 0  TOUCH_CS
+// 0 1 0  SD_CS
+// 1 1 0  -
+// 0 0 1  TFT_RESET
+// 1 0 1
+// 0 1 1  -
+// 1 1 1  -
+
+hal::Mux::Mux()
+{
+    mutex_id = osMutexCreate(osMutex(mutex));
+}
+
+void hal::Mux::begin()
 {
     SPI.begin();
-    mux_mutex_id = osMutexCreate(osMutex(mux));
+
+    digitalWrite(MUX_A0, 1);
+    digitalWrite(MUX_A1, 1);
+    digitalWrite(MUX_A2, 0);
 }
 
-void mux_select_tft()
+void hal::Mux::spi_begin(uint32_t freq)
 {
-    osMutexWait(mux_mutex_id, osWaitForever);
-    // TODO: not available on prototype board
-    // digitalWrite(MUX_A0, 0);
-    // digitalWrite(MUX_A1, 0);
-    // digitalWrite(MUX_A2, 0);
-    osMutexRelease(mux_mutex_id);
+    osMutexWait(mutex_id, osWaitForever);
+    SPI.beginTransaction(SPISettings(freq, MSBFIRST, SPI_DATA_MODE0));
 }
 
-void mux_select_touch()
+void hal::Mux::spi_end()
 {
-    osMutexWait(mux_mutex_id, osWaitForever);
-    // TODO: not available on prototype board
-    // digitalWrite(MUX_A0, 1);
-    // digitalWrite(MUX_A1, 0);
-    // digitalWrite(MUX_A2, 0);
-    osMutexRelease(mux_mutex_id);
+    SPI.endTransaction();
+    osMutexRelease(mutex_id);
 }
 
-void mux_select_sd()
+void hal::Mux::spi_transfer(Device dev, const uint8_t *wr, uint8_t *rd, size_t n)
 {
-    osMutexWait(mux_mutex_id, osWaitForever);
-    // TODO: not available on prototype board
-    // digitalWrite(MUX_A0, 0);
-    // digitalWrite(MUX_A1, 1);
-    // digitalWrite(MUX_A2, 0);
-    digitalWrite(PA15, 0);
-    osMutexRelease(mux_mutex_id);
+    if (osMutexWait(mutex_id, 0) != osOK) {
+        dbg.printf("must call spi_begin() before calling spi_transfer()\n");
+        return;
+    }
+
+    switch (dev) {
+        case DEVICE_TFT:
+            digitalWrite(MUX_A0, 0);
+            digitalWrite(MUX_A1, 0);
+            break;
+        case DEVICE_TOUCH:
+            digitalWrite(MUX_A0, 1);
+            digitalWrite(MUX_A1, 0);
+            break;
+        case DEVICE_SD:
+            digitalWrite(MUX_A0, 0);
+            digitalWrite(MUX_A1, 1);
+            break;
+    }
+
+    for (size_t i = 0; i < n; ++i) {
+        uint8_t x = 0xFF;
+        if (wr) {
+            x = wr[i];
+        }
+        uint8_t y = SPI.transfer(x);
+        if (rd) {
+            rd[i] = y;
+        }
+    }
+
+    digitalWrite(MUX_A0, 1);
+    digitalWrite(MUX_A1, 1);
 }
 
-void mux_deselect()
+void hal::Mux::reset_tft()
 {
-    osMutexWait(mux_mutex_id, osWaitForever);
-    // TODO: not available on prototype board
-    // digitalWrite(MUX_A0, 1);
-    // digitalWrite(MUX_A1, 1);
-    // digitalWrite(MUX_A2, 1);
-    digitalWrite(PA15, 1);
-    osMutexRelease(mux_mutex_id);
-}
+    osMutexWait(mutex_id, osWaitForever);
 
-void mux_reset_tft()
-{
-    osMutexWait(mux_mutex_id, osWaitForever);
-    // TODO: not implemented
-    osMutexRelease(mux_mutex_id);
+    // important: toggle MUX_A2 last to avoid glitches on reset pin
+    digitalWrite(MUX_A0, 0);
+    digitalWrite(MUX_A0, 0);
+    digitalWrite(MUX_A2, 1);
+
+    osDelay(100);
+
+    digitalWrite(MUX_A2, 0);
+    digitalWrite(MUX_A0, 1);
+    digitalWrite(MUX_A1, 1);
+
+    osMutexRelease(mutex_id);
 }
