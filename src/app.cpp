@@ -5,6 +5,8 @@
 #include "http.h"
 #include "mux.h"
 #include "sdcard.h"
+#include "tft.h"
+#include "touch.h"
 
 void task1_start();
 void task2_start();
@@ -31,12 +33,20 @@ static const char request[] =
 
 static char buffer[1024];
 
+static void hal_init()
+{
+    using namespace hal;
+    mux.begin();
+    sd.begin();
+    tft.begin();
+    touch.begin();
+}
+
 void setup()
 {
     dbg.begin();
 
-    hal::mux.begin();
-    hal::sd.begin();
+    hal_init();
 
     int n = hal::sd.read_file("config.ini", buf, sizeof(buf));
     if (n > 0) {
