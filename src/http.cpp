@@ -1,7 +1,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include "http.h"
-#include "str.h"
 
 HTTP::HTTP(char *buf, size_t n) : out(buf), out_size(n)
 {
@@ -15,37 +14,47 @@ void HTTP::process(const char *buf, size_t n, Response &response)
     str path = request.ltrim().split(' ');
 
     if (method.equals("GET")) {
-        if (path.equals("/")) {
-            hal::Dir dir;
-            if (hal::sd.read_dir("/", dir)) {
-                render_index(response, dir);
-                return;
-            }
-        } else if (hal::sd.open(path, response.file.file)) {
-            Writer w(out, out_size);
-            w.printf("HTTP/1.0 200 OK\r\n");
-            w.printf("Content-Type: application/octet-stream\r\n");
-            w.printf("Content-Size: %u\r\n", response.file.file.get_size());
-            w.printf("\r\n");
-
-            response.type = TYPE_FILE;
-            response.file.headers = w.buf;
-            response.file.headers_len = w.pos;
-            return;
-        }
-        render_status(response, 404, "Not Found");
+        do_get(path, response);
     } else if (method.equals("DELETE")) {
-        if (hal::sd.rm(path)) {
-            render_status(response, 200, "OK");
-            return;
-        }
-        render_status(response, 404, "Not Found");
+        do_delete(path, response);
     } else {
         render_status(response, 501, "Not Implemented");
     }
 }
 
-void HTTP::render_header(Writer& w, size_t content_size)
+void HTTP::do_get(const str &path, Response &response)
+{
+    if (path.equals("/")) {
+        hal::Dir dir;
+        if (hal::sd.read_dir("/", dir)) {
+            render_index(response, dir);
+            return;
+        }
+    } else if (hal::sd.open(path, response.file.file)) {
+        Writer w(out, out_size);
+        w.printf("HTTP/1.0 200 OK\r\n");
+        w.printf("Content-Type: application/octet-stream\r\n");
+        w.printf("Content-Size: %u\r\n", response.file.file.get_size());
+        w.printf("\r\n");
+
+        response.type = TYPE_FILE;
+        response.file.headers = w.buf;
+        response.file.headers_len = w.pos;
+        return;
+    }
+    render_status(response, 404, "Not Found");
+}
+
+void HTTP::do_delete(const str &path, Response &response)
+{
+    if (hal::sd.rm(path)) {
+        render_status(response, 200, "OK");
+        return;
+    }
+    render_status(response, 404, "Not Found");
+}
+
+void HTTP::render_index_head(Writer& w, size_t content_size) const
 {
     w.printf("HTTP/1.0 200 OK\r\n");
     w.printf("Content-Type: text/html; charset=utf-8\r\n");
@@ -53,7 +62,7 @@ void HTTP::render_header(Writer& w, size_t content_size)
     w.printf("\r\n");
 }
 
-void HTTP::render_content(Writer& w, hal::Dir &dir)
+void HTTP::render_index_body(Writer& w, hal::Dir &dir) const
 {
     static const char *header =
         "<!DOCTYPE html>\n"
@@ -82,14 +91,14 @@ void HTTP::render_content(Writer& w, hal::Dir &dir)
 
 void HTTP::render_index(Response &response, hal::Dir &dir)
 {
-    Writer dummy_headers;
-    Writer dummy_content;
-    render_content(dummy_content, dir);
-    render_header(dummy_headers, dummy_content.pos);
+    Writer dummy_head;
+    Writer dummy_body;
+    render_index_body(dummy_body, dir);
+    render_index_head(dummy_head, dummy_body.pos);
 
     Writer w(out, out_size);
-    render_header(w, dummy_content.pos);
-    render_content(w, dir);
+    render_index_head(w, dummy_body.pos);
+    render_index_body(w, dir);
 
     response.type = TYPE_TEXT;
     response.text.ptr = w.buf;

@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include "sdcard.h"
+#include "str.h"
 
 class HTTP {
 public:
@@ -43,8 +44,10 @@ private:
     char *out;
     size_t out_size;
 
-    static void render_header(Writer &w, size_t content_size);
-    static void render_content(Writer &w, hal::Dir &dir);
+    void do_get(const str &path, Response &response);
+    void do_delete(const str &path, Response &response);
+    void render_index_head(Writer &w, size_t content_size) const;
+    void render_index_body(Writer &w, hal::Dir &dir) const;
     void render_index(Response &response, hal::Dir &dir);
     void render_status(Response &response, int code, const char *message);
 };
