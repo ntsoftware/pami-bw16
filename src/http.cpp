@@ -3,30 +3,46 @@
 #include "http.h"
 #include "str.h"
 
-HTTP http;
-
-HTTP::Writer::Writer() : buf(NULL), buf_size(0), pos(0)
+HTTP::HTTP(char *buf, size_t n) : out(buf), out_size(n)
 {
 }
 
-HTTP::Writer::Writer(char *buf, size_t n) : buf(buf), buf_size(n), pos(0)
+void HTTP::process(const char *buf, size_t n, Response &response)
 {
-}
+    str request(buf, n);
 
-void HTTP::Writer::printf(const char *format, ...)
-{
-    char *ptr = buf;
-    size_t n = buf_size;
+    str method = request.ltrim().split(' ');
+    str path = request.ltrim().split(' ');
 
-    if (buf != NULL) {
-        ptr += pos;
-        n -= pos;
+    if (method.equals("GET")) {
+        if (path.equals("/")) {
+            hal::Dir dir;
+            if (hal::sd.read_dir("/", dir)) {
+                render_index(response, dir);
+                return;
+            }
+        } else if (hal::sd.open(path, response.file.file)) {
+            Writer w(out, out_size);
+            w.printf("HTTP/1.0 200 OK\r\n");
+            w.printf("Content-Type: application/octet-stream\r\n");
+            w.printf("Content-Size: %u\r\n", response.file.file.get_size());
+            w.printf("\r\n");
+
+            response.type = TYPE_FILE;
+            response.file.headers = w.buf;
+            response.file.headers_len = w.pos;
+            return;
+        }
+        render_status(response, 404, "Not Found");
+    } else if (method.equals("DELETE")) {
+        if (hal::sd.rm(path)) {
+            render_status(response, 200, "OK");
+            return;
+        }
+        render_status(response, 404, "Not Found");
+    } else {
+        render_status(response, 501, "Not Implemented");
     }
-
-    va_list args;
-    va_start(args, format);
-    pos += vsnprintf(ptr, n, format, args);
-    va_end(args);
 }
 
 void HTTP::render_header(Writer& w, size_t content_size)
@@ -64,67 +80,53 @@ void HTTP::render_content(Writer& w, hal::Dir &dir)
     w.printf(footer);
 }
 
-void HTTP::render_index(Response &out, hal::Dir &dir)
+void HTTP::render_index(Response &response, hal::Dir &dir)
 {
     Writer dummy_headers;
     Writer dummy_content;
     render_content(dummy_content, dir);
     render_header(dummy_headers, dummy_content.pos);
 
-    Writer w(buffer, sizeof(buffer));
+    Writer w(out, out_size);
     render_header(w, dummy_content.pos);
     render_content(w, dir);
 
-    out.type = TYPE_TEXT;
-    out.text.ptr = w.buf;
-    out.text.len = w.pos;
+    response.type = TYPE_TEXT;
+    response.text.ptr = w.buf;
+    response.text.len = w.pos;
 }
 
-void HTTP::render_status(Response &out, int code, const char *message)
+void HTTP::render_status(Response &response, int code, const char *message)
 {
-    Writer w(buffer, sizeof(buffer));
+    Writer w(out, out_size);
     w.printf("HTTP/1.0 %d %s\r\n", code, message);
     w.printf("\r\n");
 
-    out.type = TYPE_TEXT;
-    out.text.ptr = w.buf;
-    out.text.len = w.pos;
+    response.type = TYPE_TEXT;
+    response.text.ptr = w.buf;
+    response.text.len = w.pos;
 }
 
-void HTTP::process(const char *buf, size_t n, Response &out)
+HTTP::Writer::Writer() : buf(NULL), buf_size(0), pos(0)
 {
-    str request(buf, n);
+}
 
-    str method = request.ltrim().split(' ');
-    str path = request.ltrim().split(' ');
+HTTP::Writer::Writer(char *buf, size_t n) : buf(buf), buf_size(n), pos(0)
+{
+}
 
-    if (method.equals("GET")) {
-        if (path.equals("/")) {
-            hal::Dir dir;
-            if (hal::sd.read_dir("/", dir)) {
-                render_index(out, dir);
-                return;
-            }
-        } else if (hal::sd.open(path, out.file.file)) {
-            Writer w(buffer, sizeof(buffer));
-            w.printf("HTTP/1.0 200 OK\r\n");
-            w.printf("Content-Type: application/octet-stream\r\n");
-            w.printf("Content-Size: %u\r\n", out.file.file.get_size());
-            w.printf("\r\n");
+void HTTP::Writer::printf(const char *format, ...)
+{
+    char *ptr = buf;
+    size_t n = buf_size;
 
-            out.type = TYPE_FILE;
-            out.file.headers = w.buf;
-            out.file.headers_len = w.pos;
-            return;
-        }
-        render_status(out, 404, "Not Found");
-    } else if (method.equals("DELETE")) {
-        if (hal::sd.rm(path)) {
-            render_status(out, 200, "OK");
-            return;
-        }
-        render_status(out, 404, "Not Found");
-    } else {
-        render_status(out, 501, "Not Implemented");
+    if (buf != NULL) {
+        ptr += pos;
+        n -= pos;
     }
+
+    va_list args;
+    va_start(args, format);
+    pos += vsnprintf(ptr, n, format, args);
+    va_end(args);
 }

@@ -26,7 +26,8 @@ public:
         };
     };
 
-    void process(const char *buf, size_t n, Response &out);
+    HTTP(char *buf, size_t n);
+    void process(const char *buf, size_t n, Response &response);
 
 private:
     struct Writer {
@@ -39,12 +40,11 @@ private:
         void printf(const char *format, ...);
     };
 
+    char *out;
+    size_t out_size;
+
     static void render_header(Writer &w, size_t content_size);
     static void render_content(Writer &w, hal::Dir &dir);
-    void render_index(Response &out, hal::Dir &dir);
-    void render_status(Response &out, int code, const char *message);
-
-    char buffer[1024];
+    void render_index(Response &response, hal::Dir &dir);
+    void render_status(Response &response, int code, const char *message);
 };
-
-extern HTTP http;

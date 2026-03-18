@@ -4,10 +4,11 @@
 static void task2(const void *);
 static osThreadDef(task2, osPriorityNormal, 1, 4096);
 
-void task2_init()
+void task2_start()
 {
-    osThreadId id = osThreadCreate(osThread(task2), NULL);
-    dbg.printf("task2: thread id=%u\n", id);
+    if (!osThreadCreate(osThread(task2), NULL)) {
+        dbg.printf("failed to create task2\n");
+    }
 }
 
 static void task2(const void *)
