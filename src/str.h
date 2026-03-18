@@ -2,6 +2,9 @@
 
 #include <stddef.h>
 
+// suppress strncpy macro definition which conflicts with str::strncpy()
+#undef strncpy
+
 class str {
 public:
     str(const char *ptr, size_t len);

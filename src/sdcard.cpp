@@ -24,6 +24,29 @@ int hal::SdCard::read_file(const char *path, char *buf, size_t n)
     return bytes_read;
 }
 
+bool hal::SdCard::read_dir(const char *path, Dir &dir)
+{
+    // TODO: not implemented
+    (void) path;
+    (void) dir;
+    return false;
+}
+
+bool hal::SdCard::open(const str &path, File &file)
+{
+    // TODO: not implemented
+    (void) path;
+    (void) file;
+    return false;
+}
+
+bool hal::SdCard::rm(const str &path)
+{
+    // TODO: not implemented
+    (void) path;
+    return false;
+}
+
 void hal::SdCardSpi::begin(SdSpiConfig config) {
     freq = config.maxSck;
 }
@@ -53,4 +76,26 @@ void hal::SdCardSpi::send(uint8_t data) {
 
 void hal::SdCardSpi::send(const uint8_t *buf, size_t count) {
     mux.spi_transfer(Mux::DEVICE_SD, buf, NULL, count);
+}
+
+size_t hal::File::get_size() const
+{
+    // TODO: not implemented
+    return 0;
+}
+
+hal::Dir::Dir() : pos(0)
+{
+}
+
+void hal::Dir::rewind()
+{
+    // TODO: not implemented
+}
+
+bool hal::Dir::next(hal::Dir::Entry &entry)
+{
+    // TODO: not implemented
+    (void) entry;
+    return false;
 }
