@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
-#include "config.h"
 #include "debug.h"
 #include "http.h"
+#include "state.h"
 
 static void task_http(const void *);
 static osThreadDef(task_http, osPriorityNormal, 1, 4096);
@@ -21,52 +21,49 @@ void task_http_start()
 
 static void task_http(const void *)
 {
-    dbg.printf("http: connecting to %s\n", cfg.ssid);
-
-    int status = WL_IDLE_STATUS;
-    while (status != WL_CONNECTED) {
-        status = WiFi.begin(cfg.ssid, cfg.password);
-        osDelay(5000);
-    }
-
-    dbg.printf("http: connected to %s\n", cfg.ssid);
-
-    WiFiServer server(80);
-    server.setBlockingMode();
-    server.begin();
-
-    HTTP http(buffer, sizeof(buffer));
-    HTTP::Response response;
-
     while (1) {
-        WiFiClient client = server.available();
+        state.wait_wifi();
 
-        if (client) {
-            dbg.printf("http: client connected\n");
+        WiFiServer server(80);
+        server.begin();
 
-            while (client.connected()) {
-                int n = read_to_buffer(client);
-                if (n > 0) {
-                    dbg.printf("http: received %d bytes\n", n);
+        HTTP http(buffer, sizeof(buffer));
+        HTTP::Response response;
 
-                    http.process(buffer, n, response);
+        dbg.printf("http: server started\n");
 
-                    switch (response.type) {
-                        case HTTP::TYPE_TEXT:
-                            client.write(response.text.ptr, response.text.len);
-                            dbg.printf("http: sent %d bytes\n", response.text.len);
-                            break;
-                        case HTTP::TYPE_FILE:
-                            client.write(response.file.headers, response.file.headers_len);
-                            dbg.printf("http: sent %d bytes\n", response.file.headers_len);
-                            break;
+        while (state.wifi) {
+            WiFiClient client = server.available();
+
+            if (client) {
+                dbg.printf("http: client connected\n");
+
+                while (client.connected()) {
+                    int n = read_to_buffer(client);
+                    if (n > 0) {
+                        dbg.printf("http: received %d bytes\n", n);
+
+                        http.process(buffer, n, response);
+
+                        switch (response.type) {
+                            case HTTP::TYPE_TEXT:
+                                client.write(response.text.ptr, response.text.len);
+                                dbg.printf("http: sent %d bytes\n", response.text.len);
+                                break;
+                            case HTTP::TYPE_FILE:
+                                client.write(response.file.headers, response.file.headers_len);
+                                dbg.printf("http: sent %d bytes\n", response.file.headers_len);
+                                break;
+                        }
                     }
                 }
-            }
 
-            client.stop();
-            dbg.printf("http: client disconnected\n");
+                client.stop();
+                dbg.printf("http: client disconnected\n");
+            }
         }
+
+        dbg.printf("http: server stopped\n");
     }
 }
 

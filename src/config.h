@@ -9,7 +9,9 @@ struct Config {
     char hostname[16];
     IPAddress local_ip;
     IPAddress subnet_mask;
-    IPAddress gateway_ip;
+    IPAddress gateway;
+    IPAddress dns_server;
+    int time_port;
 
     Config();
     void print();

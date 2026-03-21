@@ -126,3 +126,67 @@ void str::strncpy(char *dest, size_t n) const
         dest[n - 1] = 0;
     }
 }
+
+void str::parse_str(char *dest, size_t n)
+{
+    ltrim();
+    rtrim();
+    strncpy(dest, n);
+}
+
+bool str::parse_int(int &out)
+{
+    ltrim();
+
+    if (!isdigit(peek())) {
+        return false;
+    }
+
+    int i = pop() - '0';
+
+    while (isdigit(peek())) {
+        i = i * 10 + pop() - '0';
+    }
+
+    out = i;
+    return true;
+}
+
+bool str::parse_ip(IPAddress &out)
+{
+    ltrim();
+
+    int a = 0;
+    int b = 0;
+    int c = 0;
+    int d = 0;
+
+    if (!parse_int(a)) {
+        return false;
+    }
+    if (pop() != '.') {
+        return false;
+    }
+    if (!parse_int(b)) {
+        return false;
+    }
+    if (pop() != '.') {
+        return false;
+    }
+    if (!parse_int(c)) {
+        return false;
+    }
+    if (pop() != '.') {
+        return false;
+    }
+    if (!parse_int(d)) {
+        return false;
+    }
+
+    if (a < 256 && b < 256 && c < 256 && d < 256) {
+        out = IPAddress(a, b, c, d);
+        return true;
+    } else {
+        return false;
+    }
+}

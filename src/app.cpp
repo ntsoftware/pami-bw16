@@ -2,13 +2,15 @@
 #include <cmsis_os.h>
 #include "config.h"
 #include "debug.h"
-#include "http.h"
 #include "mux.h"
 #include "sdcard.h"
+#include "state.h"
 #include "tft.h"
 #include "touch.h"
 
 void task_http_start();
+void task_time_start();
+void task_wifi_start();
 
 static void hal_init()
 {
@@ -27,6 +29,8 @@ void setup()
 
 
     task_http_start();
+    task_time_start();
+    task_wifi_start();
 }
 
 void loop()

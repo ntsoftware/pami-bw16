@@ -1,24 +1,20 @@
-#include <ctype.h>
 #include <string.h>
-#include "IPAddress.h"
 #include "config.h"
 #include "debug.h"
 #include "str.h"
 
 Config cfg;
 
-static void parse_str(str &s, char *buf, size_t n);
-static int parse_int(str &s);
-static void parse_ip(str &s, IPAddress &ip);
-
 Config::Config()
 {
-    memset(ssid, 0, sizeof(ssid));
-    memset(password, 0, sizeof(password));
-    memset(hostname, 0, sizeof(hostname));
-    local_ip = IPAddress(192, 168, 0, 10);
-    subnet_mask = IPAddress(255, 25, 255, 0);
-    gateway_ip = IPAddress(192, 168, 0, 254);
+    strcpy(ssid, "TDS-Team");
+    strcpy(password, "password");
+    strcpy(hostname, "noname");
+    local_ip = IPAddress(192, 168, 254, 200);
+    subnet_mask = IPAddress(255, 255, 255, 0);
+    gateway = IPAddress(192, 168, 254, 100);
+    dns_server = IPAddress(8, 8, 8, 8);
+    time_port = 5000;
 }
 
 void Config::print()
@@ -36,11 +32,17 @@ void Config::print()
         subnet_mask[1],
         subnet_mask[2],
         subnet_mask[3]);
-    dbg.printf("gateway_ip: %d.%d.%d.%d\n",
-        gateway_ip[0],
-        gateway_ip[1],
-        gateway_ip[2],
-        gateway_ip[3]);
+    dbg.printf("gateway: %d.%d.%d.%d\n",
+        gateway[0],
+        gateway[1],
+        gateway[2],
+        gateway[3]);
+    dbg.printf("dns_server: %d.%d.%d.%d\n",
+        dns_server[0],
+        dns_server[1],
+        dns_server[2],
+        dns_server[3]);
+    dbg.printf("time_port: %d\n", time_port);
 }
 
 void Config::parse(const char *buf, size_t n)
@@ -62,76 +64,22 @@ void Config::parse(const char *buf, size_t n)
         key.rtrim();
 
         if (key.equals("ssid")) {
-            parse_str(line, ssid, sizeof(ssid));
+            line.parse_str(ssid, sizeof(ssid));
         } else if (key.equals("password")) {
-            parse_str(line, password, sizeof(password));
+            line.parse_str(password, sizeof(password));
         } else if (key.equals("hostname")) {
-            parse_str(line, hostname, sizeof(hostname));
+            line.parse_str(hostname, sizeof(hostname));
         } else if (key.equals("local_ip")) {
-            parse_ip(line, local_ip);
+            line.parse_ip(local_ip);
         } else if (key.equals("subnet_mask")) {
-            parse_ip(line, subnet_mask);
-        } else if (key.equals("gateway_ip")) {
-            parse_ip(line, gateway_ip);
+            line.parse_ip(subnet_mask);
+        } else if (key.equals("gateway")) {
+            line.parse_ip(gateway);
+        } else if (key.equals("dns_server")) {
+            line.parse_ip(dns_server);
+        } else if (key.equals("time_port")) {
+            line.parse_int(time_port);
         }
     }
 }
 
-static void parse_str(str &s, char *buf, size_t n)
-{
-    s.ltrim();
-    s.rtrim();
-    s.strncpy(buf, n);
-}
-
-static int parse_int(str &s)
-{
-    int i = 0;
-
-    while (!s.is_empty()) {
-        int c = s.peek();
-        if (i == 0) {
-            if (isdigit(c)) {
-                s.pop();
-                i = c - '0';
-            } else {
-                break;
-            }
-        } else {
-            if (isdigit(c)) {
-                s.pop();
-                i = i * 10 + c - '0';
-            } else {
-                break;
-            }
-        }
-    }
-
-    return i;
-}
-
-static void parse_ip(str &s, IPAddress &ip)
-{
-    s.ltrim();
-
-    int a = parse_int(s);
-    if (s.pop() != '.') {
-        return;
-    }
-    int b = parse_int(s);
-    if (s.pop() != '.') {
-        return ;
-    }
-    int c = parse_int(s);
-    if (s.pop() != '.') {
-        return ;
-    }
-    int d = parse_int(s);
-
-    if (a < 256 && b < 256 && c < 256 && d < 256) {
-        ip[0] = a;
-        ip[1] = b;
-        ip[2] = c;
-        ip[3] = d;
-    }
-}

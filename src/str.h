@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stddef.h>
+#include "IPAddress.h"
 
 // suppress strncpy macro definition which conflicts with str::strncpy()
 #undef strncpy
@@ -20,6 +21,9 @@ public:
     bool starts_with(const char *prefix) const;
     bool remove_prefix(const char *prefix);
     void strncpy(char *dest, size_t n) const;
+    void parse_str(char *dest, size_t n);
+    bool parse_int(int &out);
+    bool parse_ip(IPAddress &out);
 private:
     const char *ptr;
     size_t len;
