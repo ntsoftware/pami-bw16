@@ -34,7 +34,7 @@ void HTTP::do_get(const str &path, Response &response)
         Writer w(out, out_size);
         w.printf("HTTP/1.0 200 OK\r\n");
         w.printf("Content-Type: application/octet-stream\r\n");
-        w.printf("Content-Size: %u\r\n", response.file.file.get_size());
+        w.printf("Content-Length: %u\r\n", response.file.file.get_size());
         w.printf("\r\n");
 
         response.type = TYPE_FILE;
@@ -54,11 +54,11 @@ void HTTP::do_delete(const str &path, Response &response)
     render_status(response, 404, "Not Found");
 }
 
-void HTTP::render_index_head(Writer& w, size_t content_size) const
+void HTTP::render_index_head(Writer& w, size_t content_length) const
 {
     w.printf("HTTP/1.0 200 OK\r\n");
     w.printf("Content-Type: text/html; charset=utf-8\r\n");
-    w.printf("Content-Size: %u\r\n", content_size);
+    w.printf("Content-Length: %u\r\n", content_length);
     w.printf("\r\n");
 }
 
@@ -109,6 +109,7 @@ void HTTP::render_status(Response &response, int code, const char *message)
 {
     Writer w(out, out_size);
     w.printf("HTTP/1.0 %d %s\r\n", code, message);
+    w.printf("Content-Length: 0\r\n");
     w.printf("\r\n");
 
     response.type = TYPE_TEXT;

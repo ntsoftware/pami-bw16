@@ -46,7 +46,7 @@ private:
 
     void do_get(const str &path, Response &response);
     void do_delete(const str &path, Response &response);
-    void render_index_head(Writer &w, size_t content_size) const;
+    void render_index_head(Writer &w, size_t content_length) const;
     void render_index_body(Writer &w, hal::Dir &dir) const;
     void render_index(Response &response, hal::Dir &dir);
     void render_status(Response &response, int code, const char *message);
