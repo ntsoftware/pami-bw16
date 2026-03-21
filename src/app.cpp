@@ -8,8 +8,6 @@
 #include "tft.h"
 #include "touch.h"
 
-void task1_start();
-void task2_start();
 void task_http_start();
 
 static void hal_init()
@@ -28,8 +26,6 @@ void setup()
     hal_init();
 
 
-    task1_start();
-    task2_start();
     task_http_start();
 }
 
