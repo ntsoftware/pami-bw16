@@ -32,16 +32,16 @@ void Config::print()
         subnet_mask[1],
         subnet_mask[2],
         subnet_mask[3]);
-    dbg.printf("gateway: %d.%d.%d.%d\n",
-        gateway[0],
-        gateway[1],
-        gateway[2],
-        gateway[3]);
-    dbg.printf("dns_server: %d.%d.%d.%d\n",
-        dns_server[0],
-        dns_server[1],
-        dns_server[2],
-        dns_server[3]);
+    dbg.printf("gateway_ip: %d.%d.%d.%d\n",
+        gateway_ip[0],
+        gateway_ip[1],
+        gateway_ip[2],
+        gateway_ip[3]);
+    dbg.printf("dns_ip: %d.%d.%d.%d\n",
+        dns_ip[0],
+        dns_ip[1],
+        dns_ip[2],
+        dns_ip[3]);
     dbg.printf("time_port: %d\n", time_port);
 }
 
@@ -73,10 +73,10 @@ void Config::parse(const char *buf, size_t n)
             line.parse_ip(local_ip);
         } else if (key.equals("subnet_mask")) {
             line.parse_ip(subnet_mask);
-        } else if (key.equals("gateway")) {
-            line.parse_ip(gateway);
-        } else if (key.equals("dns_server")) {
-            line.parse_ip(dns_server);
+        } else if (key.equals("gateway_ip")) {
+            line.parse_ip(gateway_ip);
+        } else if (key.equals("dns_ip")) {
+            line.parse_ip(dns_ip);
         } else if (key.equals("time_port")) {
             line.parse_int(time_port);
         }

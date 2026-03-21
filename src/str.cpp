@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <string.h>
+#include "IPAddress.h"
 #include "debug.h"
 #include "str.h"
 
@@ -116,22 +117,18 @@ bool str::remove_prefix(const char *prefix)
     }
 }
 
-void str::strncpy(char *dest, size_t n) const
-{
-    if (len < n) {
-        memcpy(dest, ptr, len);
-        dest[len] = 0;
-    } else {
-        memcpy(dest, ptr, n - 1);
-        dest[n - 1] = 0;
-    }
-}
-
-void str::parse_str(char *dest, size_t n)
+bool str::parse_str(char *dest, size_t n)
 {
     ltrim();
     rtrim();
-    strncpy(dest, n);
+
+    if (len < n) {
+        memcpy(dest, ptr, len);
+        dest[len] = 0;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool str::parse_int(int &out)

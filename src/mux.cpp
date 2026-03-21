@@ -28,6 +28,10 @@ void hal::Mux::begin()
 {
     SPI.begin();
 
+    pinMode(MUX_A0, OUTPUT);
+    pinMode(MUX_A1, OUTPUT);
+    pinMode(MUX_A2, OUTPUT);
+
     digitalWrite(MUX_A0, 1);
     digitalWrite(MUX_A1, 1);
     digitalWrite(MUX_A2, 0);
@@ -47,11 +51,6 @@ void hal::Mux::spi_end()
 
 void hal::Mux::spi_transfer(Device dev, const uint8_t *wr, uint8_t *rd, size_t n)
 {
-    if (osMutexWait(mutex_id, 0) != osOK) {
-        dbg.printf("must call spi_begin() before calling spi_transfer()\n");
-        return;
-    }
-
     switch (dev) {
         case DEVICE_TFT:
             digitalWrite(MUX_A0, 0);

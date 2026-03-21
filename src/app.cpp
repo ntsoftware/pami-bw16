@@ -4,13 +4,14 @@
 #include "debug.h"
 #include "mux.h"
 #include "sdcard.h"
-#include "state.h"
 #include "tft.h"
 #include "touch.h"
 
 void task_http_start();
 void task_time_start();
 void task_wifi_start();
+
+static char buffer[1024];
 
 static void hal_init()
 {
@@ -27,6 +28,13 @@ void setup()
 
     hal_init();
 
+    int n = hal::sd.read_file("config.ini", buffer, sizeof(buffer));
+    if (n > 0) {
+        cfg.parse(buffer, n);
+        cfg.print();
+    } else {
+        dbg.printf("configuration file not found\n");
+    }
 
     task_http_start();
     task_time_start();

@@ -11,7 +11,7 @@ hal::SdCard::SdCard()
 
 void hal::SdCard::begin()
 {
-    if (!fs.begin(SdSpiConfig(SPI_SS, DEDICATED_SPI, SD_SCK_MHZ(40), &spi))) {
+    if (!fs.begin(SdSpiConfig(SPI_SS, DEDICATED_SPI, SD_SCK_MHZ(4), &spi))) {
         dbg.printf("sdcard initialization failed (%d)\n", fs.sdErrorCode());
     }
 }
