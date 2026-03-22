@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include <stdio.h>
+#include "config.h"
 #include "http.h"
 
 HTTP::HTTP(char *buf, size_t n) : out(buf), out_size(n)
@@ -73,7 +74,7 @@ void HTTP::render_index_body(Writer& w, hal::Dir &dir) const
         "<!DOCTYPE html>\n"
         "<html>\n"
         "<body>\n"
-        "<h1>Directory listing for /</h1>\n"
+        "<h1>Directory listing for %s</h1>\n"
         "<hr/>\n"
         "<ul>\n";
 
@@ -83,7 +84,7 @@ void HTTP::render_index_body(Writer& w, hal::Dir &dir) const
         "</body>\n"
         "</html>\n";
 
-    w.printf(header);
+    w.printf(header, cfg.hostname);
 
     hal::Dir::Entry entry;
     dir.rewind();
