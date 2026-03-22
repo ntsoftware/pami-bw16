@@ -17,7 +17,7 @@ void task_wifi_start()
 static void task_wifi(const void *)
 {
     while (1) {
-        WiFi.config(cfg.local_ip, cfg.dns_server, cfg.gateway, cfg.subnet_mask);
+        WiFi.config(cfg.local_ip, cfg.dns_ip, cfg.gateway_ip, cfg.subnet_mask);
         WiFi.setHostname(cfg.hostname);
 
         int status = WL_IDLE_STATUS;

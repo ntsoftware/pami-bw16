@@ -13,6 +13,12 @@ void str::print() const
     dbg.write(ptr, len);
 }
 
+void str::println() const
+{
+    dbg.write(ptr, len);
+    dbg.printf("\n");
+}
+
 bool str::is_empty() const
 {
     return len == 0;
@@ -92,13 +98,34 @@ str str::split(const char *delim)
 
 bool str::equals(const char *other) const
 {
-    return starts_with(other) && other[len] == 0;
+    size_t i = 0;
+    while (i < len && other[i] != 0) {
+        if (ptr[i] != other[i]) {
+            return false;
+        }
+        i += 1;
+    }
+    return i == len && other[i] == 0;
 }
 
 bool str::starts_with(const char *prefix) const
 {
     for (size_t i = 0; i < len && prefix[i] != 0; ++i) {
         if (ptr[i] != prefix[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool str::ends_with(const char *suffix) const
+{
+    size_t n = strlen(suffix);
+    if (n > len) {
+        return false;
+    }
+    for (size_t i = 0; i < n; ++i) {
+        if (ptr[len - n + i] != suffix[i]) {
             return false;
         }
     }
@@ -185,5 +212,16 @@ bool str::parse_ip(IPAddress &out)
         return true;
     } else {
         return false;
+    }
+}
+
+void str::strncpy(char *dest, size_t n) const
+{
+    if (len < n) {
+        memcpy(dest, ptr, len);
+        dest[len] = 0;
+    } else {
+        memcpy(dest, ptr, n - 1);
+        dest[n - 1] = 0;
     }
 }

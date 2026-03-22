@@ -8,7 +8,13 @@
 namespace hal {
     class File {
     public:
+        File();
+        ~File();
         size_t get_size() const;
+        int read(char *buf, size_t n);
+    private:
+        FsFile file;
+        friend class SdCard;
     };
 
     class Dir {
@@ -19,11 +25,14 @@ namespace hal {
         };
 
         Dir();
+        ~Dir();
         void rewind();
         bool next(Entry &entry);
 
     private:
-        size_t pos;
+        FsFile dir;
+        FsFile file;
+        friend class SdCard;
     };
 
     class SdCardSpi : public SdSpiBaseClass {

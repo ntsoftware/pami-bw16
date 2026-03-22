@@ -13,22 +13,12 @@ public:
 
     struct Response {
         enum ResponseType type;
-        union {
-            struct {
-                const char *ptr;
-                size_t len;
-            } text;
-
-            struct {
-                const char *headers;
-                size_t headers_len;
-                hal::File file;
-            } file;
-        };
+        const char *buf;
+        size_t size;
     };
 
     HTTP(char *buf, size_t n);
-    void process(const char *buf, size_t n, Response &response);
+    void process(const char *buf, size_t n, Response &response, hal::File &file);
 
 private:
     struct Writer {
@@ -44,7 +34,7 @@ private:
     char *out;
     size_t out_size;
 
-    void do_get(const str &path, Response &response);
+    void do_get(const str &path, Response &response, hal::File &file);
     void do_delete(const str &path, Response &response);
     void render_index_head(Writer &w, size_t content_length) const;
     void render_index_body(Writer &w, hal::Dir &dir) const;

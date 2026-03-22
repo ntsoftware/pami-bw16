@@ -12,8 +12,8 @@ Config::Config()
     strcpy(hostname, "noname");
     local_ip = IPAddress(192, 168, 254, 200);
     subnet_mask = IPAddress(255, 255, 255, 0);
-    gateway = IPAddress(192, 168, 254, 100);
-    dns_server = IPAddress(8, 8, 8, 8);
+    gateway_ip = IPAddress(192, 168, 254, 100);
+    dns_ip = IPAddress(8, 8, 8, 8);
     time_port = 5000;
 }
 

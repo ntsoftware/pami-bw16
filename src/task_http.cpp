@@ -3,6 +3,7 @@
 #include <WiFiClient.h>
 #include "debug.h"
 #include "http.h"
+#include "sdcard.h"
 #include "state.h"
 
 static void task_http(const void *);
@@ -11,6 +12,8 @@ static osThreadDef(task_http, osPriorityNormal, 1, 4096);
 static char buffer[1024];
 
 static int read_to_buffer(WiFiClient &client);
+static int send_text(WiFiClient &client, const char *buf, size_t size);
+static int send_file(WiFiClient &client, const char *buf, size_t size, hal::File &file);
 
 void task_http_start()
 {
@@ -43,18 +46,19 @@ static void task_http(const void *)
                     if (n > 0) {
                         dbg.printf("http: received %d bytes\n", n);
 
-                        http.process(buffer, n, response);
+                        hal::File file;
+                        http.process(buffer, n, response, file);
 
                         switch (response.type) {
                             case HTTP::TYPE_TEXT:
-                                client.write(response.text.ptr, response.text.len);
-                                dbg.printf("http: sent %d bytes\n", response.text.len);
+                                n = send_text(client, response.buf, response.size);
                                 break;
                             case HTTP::TYPE_FILE:
-                                client.write(response.file.headers, response.file.headers_len);
-                                dbg.printf("http: sent %d bytes\n", response.file.headers_len);
+                                n = send_file(client, response.buf, response.size, file);
                                 break;
                         }
+
+                        dbg.printf("http: sent %d bytes\n", n);
                     }
                 }
 
@@ -87,4 +91,25 @@ static int read_to_buffer(WiFiClient &client)
     }
 
     return n;
+}
+
+static int send_text(WiFiClient &client, const char *buf, size_t size)
+{
+    client.write(buf, size);
+    return size;
+}
+
+static int send_file(WiFiClient &client, const char *buf, size_t size, hal::File &file)
+{
+    client.write(buf, size);
+    while (1) {
+        int n = file.read(buffer, sizeof(buffer));
+        if (n > 0) {
+            client.write(buffer, n);
+            size += n;
+        } else {
+            break;
+        }
+    }
+    return size;
 }

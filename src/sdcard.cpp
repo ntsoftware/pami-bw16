@@ -26,25 +26,21 @@ int hal::SdCard::read_file(const char *path, char *buf, size_t n)
 
 bool hal::SdCard::read_dir(const char *path, Dir &dir)
 {
-    // TODO: not implemented
-    (void) path;
-    (void) dir;
-    return false;
+    return dir.dir.open(path);
 }
 
 bool hal::SdCard::open(const str &path, File &file)
 {
-    // TODO: not implemented
-    (void) path;
-    (void) file;
-    return false;
+    char buf[16];
+    path.strncpy(buf, sizeof(buf));
+    return file.file.open(buf);
 }
 
 bool hal::SdCard::rm(const str &path)
 {
-    // TODO: not implemented
-    (void) path;
-    return false;
+    char buf[16];
+    path.strncpy(buf, sizeof(buf));
+    return fs.remove(buf);
 }
 
 void hal::SdCardSpi::begin(SdSpiConfig config) {
@@ -78,24 +74,50 @@ void hal::SdCardSpi::send(const uint8_t *buf, size_t count) {
     mux.spi_transfer(Mux::DEVICE_SD, buf, NULL, count);
 }
 
-size_t hal::File::get_size() const
+hal::File::File()
 {
-    // TODO: not implemented
-    return 0;
 }
 
-hal::Dir::Dir() : pos(0)
+hal::File::~File()
 {
+    file.close();
+}
+
+size_t hal::File::get_size() const
+{
+    return file.fileSize();
+}
+
+int hal::File::read(char *buf, size_t n)
+{
+    return file.read(buf, n);
+}
+
+hal::Dir::Dir()
+{
+}
+
+hal::Dir::~Dir()
+{
+    dir.close();
 }
 
 void hal::Dir::rewind()
 {
-    // TODO: not implemented
+    dir.rewind();
 }
 
 bool hal::Dir::next(hal::Dir::Entry &entry)
 {
-    // TODO: not implemented
-    (void) entry;
+    while (file.openNext(&dir)) {
+        if (file.isDir()) {
+            file.close();
+            continue;
+        }
+        file.getName(entry.name, sizeof(entry.name));
+        entry.size = file.fileSize();
+        file.close();
+        return true;
+    }
     return false;
 }
