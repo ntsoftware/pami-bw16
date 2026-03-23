@@ -1,8 +1,9 @@
 #pragma once
 
 #include <stddef.h>
-#include "sdcard.h"
-#include "str.h"
+#include "hal/sdcard.h"
+
+class str;
 
 class HTTP {
 public:

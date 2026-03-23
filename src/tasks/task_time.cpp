@@ -2,9 +2,9 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include "config.h"
-#include "debug.h"
 #include "state.h"
-#include "str.h"
+#include "utils/debug.h"
+#include "utils/str.h"
 
 static void task_time(const void *);
 static osThreadDef(task_time, osPriorityNormal, 1, 4096);

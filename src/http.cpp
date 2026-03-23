@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "config.h"
 #include "http.h"
+#include "utils/str.h"
 
 HTTP::HTTP(char *buf, size_t n) : out(buf), out_size(n)
 {

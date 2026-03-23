@@ -1,11 +1,11 @@
 #include <Arduino.h>
 #include <cmsis_os.h>
 #include "config.h"
-#include "debug.h"
-#include "mux.h"
-#include "sdcard.h"
-#include "tft.h"
-#include "touch.h"
+#include "hal/mux.h"
+#include "hal/sdcard.h"
+#include "hal/tft.h"
+#include "hal/touch.h"
+#include "utils/debug.h"
 
 void task_http_start();
 void task_time_start();
@@ -18,8 +18,8 @@ static void hal_init()
     using namespace hal;
     mux.begin();
     sd.begin();
-    tft.begin();
-    touch.begin();
+    //tft.begin();
+    //touch.begin();
 }
 
 void setup()

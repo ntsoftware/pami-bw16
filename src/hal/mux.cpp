@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "SPI.h"
-#include "debug.h"
 #include "mux.h"
+#include "utils/debug.h"
 
 hal::Mux hal::mux;
 

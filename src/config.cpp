@@ -1,7 +1,7 @@
 #include <string.h>
 #include "config.h"
-#include "debug.h"
-#include "str.h"
+#include "utils/debug.h"
+#include "utils/str.h"
 
 Config cfg;
 
@@ -82,4 +82,3 @@ void Config::parse(const char *buf, size_t n)
         }
     }
 }
-

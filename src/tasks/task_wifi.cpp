@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include "config.h"
-#include "debug.h"
 #include "state.h"
+#include "utils/debug.h"
 
 static void task_wifi(const void *);
 static osThreadDef(task_wifi, osPriorityNormal, 1, 4096);

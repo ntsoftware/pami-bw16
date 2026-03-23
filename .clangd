@@ -1,7 +1,7 @@
 CompileFlags:
-  Add: [
-    "--target=arm-none-eabi"
-  ]
+  Add: ["--target=arm-none-eabi"]
+  CompilationDatabase: "build/release"
+  BuiltinHeaders: QueryDriver
 
 Completion:
   HeaderInsertion: Never

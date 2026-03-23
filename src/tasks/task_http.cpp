@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
-#include "debug.h"
 #include "http.h"
-#include "sdcard.h"
 #include "state.h"
+#include "hal/sdcard.h"
+#include "utils/debug.h"
 
 static void task_http(const void *);
 static osThreadDef(task_http, osPriorityNormal, 1, 4096);

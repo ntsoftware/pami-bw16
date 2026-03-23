@@ -12,44 +12,51 @@ IMAGE_BIN := km0_km4_image2.bin
 BUILD_RELEASE := build/release
 BUILD_DEBUG := build/debug
 
-SOURCES := pami-bw16.ino \
-    src/app.cpp
+.PHONY: all clean build-debug build-release upload-debug upload-release build flash monitor compile-db
 
-all: release
+all: build-release
 
-compile-db: $(SOURCES)
+compile-db:
 	arduino-cli compile \
 		--fqbn $(FQBN) \
 		--libraries libraries \
 		--only-compilation-database \
+		--build-property "compiler.c.extra_flags=-Isrc" \
+		--build-property "compiler.cpp.extra_flags=-Isrc" \
 		--build-path $(BUILD_RELEASE)
 
-release: $(SOURCES)
+build-release:
 	arduino-cli compile \
 		--fqbn $(FQBN) \
 		--libraries libraries \
+		--build-property "compiler.c.extra_flags=-Isrc" \
+		--build-property "compiler.cpp.extra_flags=-Isrc" \
 		--build-path $(BUILD_RELEASE)
 
-debug: $(SOURCES)
+build-debug: $(SOURCES)
 	arduino-cli compile \
 		--fqbn $(FQBN) \
 		--optimize-for-debug \
 		--libraries libraries \
+		--build-property "compiler.c.extra_flags=-Isrc" \
+		--build-property "compiler.cpp.extra_flags=-Isrc" \
 		--build-path $(BUILD_DEBUG)
 
-upload-release: release
+upload-release: build-release
 	arduino-cli upload \
 		--fqbn $(FQBN) \
 		--port $(PORT) \
 		--upload-property upload.auto_mode=Enable \
 		--input-file $(BUILD_RELEASE)/$(IMAGE_BIN)
 
-upload-debug: debug
+upload-debug: build-debug
 	arduino-cli upload \
 		--fqbn $(FQBN) \
 		--port $(PORT) \
 		--upload-property upload.auto_mode=Enable \
 		--input-file $(BUILD_DEBUG)/$(IMAGE_BIN)
+
+build: build-release
 
 flash: upload-release
 
@@ -68,5 +75,3 @@ endif
 
 clean:
 	$(RM) build
-
-.PHONY: all clean debug release upload-debug upload-release flash monitor compile-db

@@ -3,7 +3,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "SdFat.h"
-#include "str.h"
+
+class str;
 
 namespace hal {
     class File {

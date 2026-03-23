@@ -1,7 +1,8 @@
 #include <Arduino.h>
-#include "debug.h"
 #include "mux.h"
 #include "sdcard.h"
+#include "utils/debug.h"
+#include "utils/str.h"
 
 hal::SdCard hal::sd;
 
