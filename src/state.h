@@ -1,11 +1,27 @@
 #pragma once
 
-// Application state.
-struct State {
-    bool wifi;
+#include <cmsis_os.h>
 
+// Application state.
+class State {
+public:
     State();
-    void wait_wifi();
+
+    bool wifi_is_up() const;
+    bool wifi_is_down() const;
+    void set_wifi_up();
+    void set_wifi_down();
+
+    int get_time() const;
+    void set_time(int value);
+
+private:
+    bool wifi;
+    int time;
+    osTimerId timer_id;
+    osTimerDef(timer, timer_func);
+
+    static void timer_func(const void *);
 };
 
-extern struct State state;
+extern State state;

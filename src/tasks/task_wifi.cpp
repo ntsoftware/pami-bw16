@@ -29,7 +29,7 @@ static void task_wifi(const void *)
             osDelay(1000);
         }
 
-        state.wifi = true;
+        state.set_wifi_up();
         dbg.printf("wifi: connected to %s\n", cfg.ssid);
 
         while (status == WL_CONNECTED) {
@@ -37,7 +37,7 @@ static void task_wifi(const void *)
             osDelay(1000);
         }
 
-        state.wifi = false;
+        state.set_wifi_down();
         dbg.printf("wifi: disconnected\n");
 
         osDelay(1000);

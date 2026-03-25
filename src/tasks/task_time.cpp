@@ -23,20 +23,23 @@ void task_time_start()
 static void task_time(const void *)
 {
     while (1) {
-        state.wait_wifi();
+        while (state.wifi_is_down()) {
+            osDelay(100);
+        }
 
         WiFiUDP server;
         server.begin(cfg.time_port);
 
         dbg.printf("time: server started\n");
 
-        while (state.wifi) {
+        while (state.wifi_is_up()) {
             if (server.parsePacket()) {
                 int n = server.read(buffer, sizeof(buffer));
                 if (n > 0) {
                     int t = parse_time(buffer, n);
                     if (t > 0) {
                         dbg.printf("time: %dms\n", t);
+                        state.set_time(t);
                     }
                 }
             }

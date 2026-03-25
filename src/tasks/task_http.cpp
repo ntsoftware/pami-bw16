@@ -25,7 +25,9 @@ void task_http_start()
 static void task_http(const void *)
 {
     while (1) {
-        state.wait_wifi();
+        while (state.wifi_is_down()) {
+            osDelay(100);
+        }
 
         WiFiServer server(80);
         server.begin();
@@ -35,7 +37,7 @@ static void task_http(const void *)
 
         dbg.printf("http: server started\n");
 
-        while (state.wifi) {
+        while (state.wifi_is_up()) {
             WiFiClient client = server.available();
 
             if (client) {
