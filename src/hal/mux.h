@@ -23,6 +23,7 @@ namespace hal {
     private:
         osMutexDef(mutex);
         osMutexId mutex_id;
+        bool spi_busy;
     };
 
     extern Mux mux;

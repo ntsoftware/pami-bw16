@@ -19,7 +19,7 @@ hal::Mux hal::mux;
 // 0 1 1  -
 // 1 1 1  -
 
-hal::Mux::Mux()
+hal::Mux::Mux() : spi_busy(false)
 {
     mutex_id = osMutexCreate(osMutex(mutex));
 }
@@ -40,17 +40,24 @@ void hal::Mux::begin()
 void hal::Mux::spi_begin(uint32_t freq)
 {
     osMutexWait(mutex_id, osWaitForever);
+    spi_busy = true;
     SPI.beginTransaction(SPISettings(freq, MSBFIRST, SPI_DATA_MODE0));
 }
 
 void hal::Mux::spi_end()
 {
     SPI.endTransaction();
+    spi_busy = false;
     osMutexRelease(mutex_id);
 }
 
 void hal::Mux::spi_transfer(Device dev, const uint8_t *wr, uint8_t *rd, size_t n)
 {
+    if (!spi_busy) {
+        dbg.printf("mux: no spi transaction in progress, must call spi_begin() first\n");
+        return;
+    }
+
     switch (dev) {
         case DEVICE_TFT:
             digitalWrite(MUX_A0, 0);
@@ -83,6 +90,8 @@ void hal::Mux::spi_transfer(Device dev, const uint8_t *wr, uint8_t *rd, size_t n
 
 void hal::Mux::reset_tft()
 {
+    dbg.printf("mux: reset tft\n");
+
     osMutexWait(mutex_id, osWaitForever);
 
     // important: toggle MUX_A2 last to avoid glitches on reset pin
