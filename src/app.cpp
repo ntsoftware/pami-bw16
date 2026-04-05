@@ -3,6 +3,7 @@
 #include "config.h"
 #include "hal/mux.h"
 #include "hal/sdcard.h"
+#include "hal/teensy.h"
 #include "hal/tft.h"
 #include "hal/touch.h"
 #include "utils/debug.h"
@@ -18,6 +19,7 @@ static void hal_init()
     using namespace hal;
     mux.begin();
     sd.begin();
+    teensy.begin();
     //tft.begin();
     //touch.begin();
 }
