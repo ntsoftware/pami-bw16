@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Send a game time packet every second.
+# Send a time packet every second.
 # To debug:
 # sudo tcpdump -X udp port [PORT]
 
@@ -20,6 +20,7 @@ try:
     while True:
         t = int((time.time() - start) * 1000)
         msg = f"TIME{t}MS"
+        print(f"send {msg}")
         sock.sendto(msg.encode("utf-8"), (BROADCAST_IP, BROADCAST_PORT))
         time.sleep(1)
 except KeyboardInterrupt:
