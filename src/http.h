@@ -40,5 +40,8 @@ private:
     void render_index_head(Writer &w, size_t content_length) const;
     void render_index_body(Writer &w, hal::Dir &dir) const;
     void render_index(Response &response, hal::Dir &dir);
+    void render_state_head(Writer &w, size_t content_length) const;
+    void render_state_body(Writer &w) const;
+    void render_state(Response &response);
     void render_status(Response &response, int code, const char *message);
 };

@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include "config.h"
 #include "http.h"
+#include "data_types.h"
+#include "state.h"
 #include "utils/str.h"
 
 HTTP::HTTP(char *buf, size_t n) : out(buf), out_size(n)
@@ -32,6 +34,9 @@ void HTTP::do_get(const str &path, Response &response, hal::File &file)
             render_index(response, dir);
             return;
         }
+    } else if (path.equals("/state")) {
+        render_state(response);
+        return;
     } else if (hal::sd.open(path, file)) {
         bool is_text = path.ends_with(".ini");
         Writer w(out, out_size);
@@ -105,6 +110,55 @@ void HTTP::render_index(Response &response, hal::Dir &dir)
     Writer w(out, out_size);
     render_index_head(w, content_length);
     render_index_body(w, dir);
+
+    response.type = TYPE_TEXT;
+    response.buf = w.buf;
+    response.size = w.pos;
+}
+
+void HTTP::render_state_head(Writer& w, size_t content_length) const
+{
+    w.printf("HTTP/1.0 200 OK\r\n");
+    w.printf("Content-Type: application/json; charset=utf-8\r\n");
+    w.printf("Content-Length: %u\r\n", content_length);
+    w.printf("\r\n");
+}
+
+void HTTP::render_state_body(Writer& w) const
+{
+    static const char *format =
+        "{\n"
+        "  \"robot_mode\": \"%s\",\n"
+        "  \"team_color\": \"%s\",\n"
+        "  \"goal_zone\": %d,\n"
+        "  \"game_time\": %u\n"
+        "}\n";
+
+    const char *robot_mode;
+    switch (state.get_robot_mode()) {
+        case ROBOT_MODE_STOP: robot_mode = "stop"; break;
+        case ROBOT_MODE_DEBUG: robot_mode = "debug"; break;
+        case ROBOT_MODE_MATCH: robot_mode = "match"; break;
+    }
+
+    const char *team_color;
+    switch (state.get_team_color()) {
+        case TEAM_COLOR_BLUE: team_color = "blue"; break;
+        case TEAM_COLOR_YELLOW: team_color = "yellow"; break;
+    }
+
+    w.printf(format, robot_mode, team_color, state.get_goal_zone(), state.get_time());
+}
+
+void HTTP::render_state(Response &response)
+{
+    Writer dummy;
+    render_state_body(dummy);
+    size_t content_length = dummy.pos;
+
+    Writer w(out, out_size);
+    render_state_head(w, content_length);
+    render_state_body(w);
 
     response.type = TYPE_TEXT;
     response.buf = w.buf;
