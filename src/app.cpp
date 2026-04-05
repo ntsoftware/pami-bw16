@@ -8,6 +8,7 @@
 #include "hal/touch.h"
 #include "utils/debug.h"
 
+void task_heartbeat_start();
 void task_http_start();
 void task_time_start();
 void task_wifi_start();
@@ -38,6 +39,7 @@ void setup()
         dbg.printf("configuration file not found\n");
     }
 
+    task_heartbeat_start();
     task_http_start();
     task_time_start();
     task_wifi_start();
