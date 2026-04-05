@@ -2,9 +2,11 @@
 
 # Enable WiFi access point on Debian Linux.
 
-ifname=wlp2s0
 ssid=TDS-Team
 password=password
+
+ifname=$(nmcli --terse --fields DEVICE,TYPE,STATE device | grep -m 1 "^.*:wifi:connected" | cut -d ':' -f 1)
+echo "Using netword device $ifname"
 
 nmcli device wifi hotspot ifname $ifname ssid $ssid password $password
 nmcli connection modify Hotspot \
