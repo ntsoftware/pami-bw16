@@ -1,7 +1,10 @@
 #include <string.h>
 #include "config.h"
+#include "data_types.h"
 #include "utils/debug.h"
 #include "utils/str.h"
+
+static const char *team_color_to_str(TeamColor value);
 
 Config cfg;
 
@@ -15,6 +18,8 @@ Config::Config()
     gateway_ip = IPAddress(192, 168, 254, 100);
     dns_ip = IPAddress(8, 8, 8, 8);
     time_port = 5000;
+    team_color = TEAM_COLOR_YELLOW;
+    goal_zone = 0;
 }
 
 void Config::print()
@@ -43,6 +48,8 @@ void Config::print()
         dns_ip[2],
         dns_ip[3]);
     dbg.printf("time_port: %d\n", time_port);
+    dbg.printf("team_color: %s\n", team_color_to_str(team_color));
+    dbg.printf("goal_zone: %d\n", goal_zone);
 }
 
 void Config::parse(const char *buf, size_t n)
@@ -79,6 +86,34 @@ void Config::parse(const char *buf, size_t n)
             line.parse_ip(dns_ip);
         } else if (key.equals("time_port")) {
             line.parse_int(time_port);
+        } else if (key.equals("team_color")) {
+            parse_team_color(line);
+        } else if (key.equals("goal_zone")) {
+            line.parse_int(goal_zone);
         }
+    }
+}
+
+void Config::parse_team_color(str &value)
+{
+    value.ltrim();
+    value.rtrim();
+
+    if (value.equals("yellow")) {
+        team_color = TEAM_COLOR_YELLOW;
+    } else if (value.equals("blue")) {
+        team_color = TEAM_COLOR_BLUE;
+    }
+}
+
+static const char *team_color_to_str(TeamColor value)
+{
+    switch (value) {
+        case TEAM_COLOR_YELLOW:
+            return "yellow";
+        case TEAM_COLOR_BLUE:
+            return "blue";
+        default:
+            return "";
     }
 }

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <cmsis_os.h>
 #include "config.h"
+#include "state.h"
 #include "hal/mux.h"
 #include "hal/sdcard.h"
 #include "hal/teensy.h"
@@ -38,6 +39,9 @@ void setup()
     } else {
         dbg.printf("configuration file not found\n");
     }
+
+    state.set_team_color(cfg.team_color);
+    state.set_goal_zone(cfg.goal_zone);
 
     task_heartbeat_start();
     task_http_start();

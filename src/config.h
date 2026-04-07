@@ -2,6 +2,9 @@
 
 #include <stddef.h>
 #include "IPAddress.h"
+#include "data_types.h"
+
+class str;
 
 struct Config {
     char ssid[64];
@@ -12,10 +15,13 @@ struct Config {
     IPAddress gateway_ip;
     IPAddress dns_ip;
     int time_port;
+    TeamColor team_color;
+    int goal_zone;
 
     Config();
     void print();
     void parse(const char *buf, size_t n);
+    void parse_team_color(str &value);
 };
 
 extern Config cfg;

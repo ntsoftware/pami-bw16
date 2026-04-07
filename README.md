@@ -155,6 +155,8 @@ local_ip = 192.168.254.100
 subnet_mask = 255.255.255.0
 gateway_ip = 192.168.254.1
 time_port = 5000
+team_color = yellow
+goal_zone = 0
 ```
 
 Toutes les lignes sont optionnelles. Les lignes vides et les lignes commençant
@@ -218,4 +220,3 @@ représentation du fichier au format JSON sur la sortie standard.
 ```shell
 ./scripts/parse_capture.py FILE
 ```
-
