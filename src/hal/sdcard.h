@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <cmsis_os.h>
 #include "SdFat.h"
 
 class str;
@@ -11,9 +12,11 @@ namespace hal {
     public:
         File();
         ~File();
+        void close();
         size_t get_size() const;
         int read(char *buf, size_t n);
     private:
+        osMutexId mutex_id;
         FsFile file;
         friend class SdCard;
     };
@@ -27,10 +30,12 @@ namespace hal {
 
         Dir();
         ~Dir();
+        void close();
         void rewind();
         bool next(Entry &entry);
 
     private:
+        osMutexId mutex_id;
         FsFile dir;
         FsFile file;
         friend class SdCard;
@@ -60,8 +65,13 @@ namespace hal {
         bool rm(const str &path);
 
     private:
+        osMutexDef(mutex);
+        osMutexId mutex_id;
         SdFs fs;
         SdCardSpi spi;
+
+        bool lock();
+        void release();
     };
 
     extern SdCard sd;

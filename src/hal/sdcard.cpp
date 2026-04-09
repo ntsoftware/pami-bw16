@@ -15,33 +15,67 @@ void hal::SdCard::begin()
     if (!fs.begin(SdSpiConfig(SPI_SS, DEDICATED_SPI, SD_SCK_MHZ(8), &spi))) {
         dbg.printf("sdcard initialization failed (%d)\n", fs.sdErrorCode());
     }
+    mutex_id = osMutexCreate(osMutex(mutex));
+}
+
+bool hal::SdCard::lock()
+{
+    return osMutexWait(mutex_id, 1000) == osOK;
+}
+
+void hal::SdCard::release()
+{
+    osMutexRelease(mutex_id);
 }
 
 int hal::SdCard::read_file(const char *path, char *buf, size_t n)
 {
-    FsFile f = fs.open(path);
-    int bytes_read = f.read(buf, n);
-    f.close();
+    int bytes_read = -1;
+    if (lock()) {
+        FsFile f = fs.open(path);
+        bytes_read = f.read(buf, n);
+        f.close();
+        release();
+    }
     return bytes_read;
 }
 
 bool hal::SdCard::read_dir(const char *path, Dir &dir)
 {
-    return dir.dir.open(path);
+    if (lock()) {
+        if (dir.dir.open(path)) {
+            dir.mutex_id = mutex_id;
+            return true;
+        }
+        release();
+    }
+    return false;
 }
 
 bool hal::SdCard::open(const str &path, File &file)
 {
-    char buf[16];
-    path.strncpy(buf, sizeof(buf));
-    return file.file.open(buf);
+    if (lock()) {
+        char buf[16];
+        path.strncpy(buf, sizeof(buf));
+        if (file.file.open(buf)) {
+            file.mutex_id = mutex_id;
+            return true;
+        }
+        release();
+    }
+    return false;
 }
 
 bool hal::SdCard::rm(const str &path)
 {
-    char buf[16];
-    path.strncpy(buf, sizeof(buf));
-    return fs.remove(buf);
+    bool file_removed = false;
+    if (lock()) {
+        char buf[16];
+        path.strncpy(buf, sizeof(buf));
+        file_removed = fs.remove(buf);
+        release();
+    }
+    return file_removed;
 }
 
 void hal::SdCardSpi::begin(SdSpiConfig config) {
@@ -75,50 +109,80 @@ void hal::SdCardSpi::send(const uint8_t *buf, size_t count) {
     mux.spi_transfer(Mux::DEVICE_SD, buf, NULL, count);
 }
 
-hal::File::File()
+hal::File::File() : mutex_id(NULL)
 {
 }
 
 hal::File::~File()
 {
-    file.close();
+    close();
+}
+
+void hal::File::close()
+{
+    if (mutex_id) {
+        file.close();
+        osMutexRelease(mutex_id);
+        mutex_id = NULL;
+    }
 }
 
 size_t hal::File::get_size() const
 {
-    return file.fileSize();
+    if (mutex_id) {
+        return file.fileSize();
+    } else {
+        return 0;
+    }
 }
 
 int hal::File::read(char *buf, size_t n)
 {
-    return file.read(buf, n);
+    if (mutex_id) {
+        return file.read(buf, n);
+    } else {
+        return -1;
+    }
 }
 
-hal::Dir::Dir()
+hal::Dir::Dir() : mutex_id(NULL)
 {
 }
 
 hal::Dir::~Dir()
 {
-    dir.close();
+    close();
+}
+
+void hal::Dir::close()
+{
+    if (mutex_id) {
+        dir.close();
+        osMutexRelease(mutex_id);
+        mutex_id = NULL;
+    }
 }
 
 void hal::Dir::rewind()
 {
-    dir.rewind();
+    if (mutex_id) {
+        dir.rewind();
+    }
 }
 
 bool hal::Dir::next(hal::Dir::Entry &entry)
 {
-    while (file.openNext(&dir)) {
-        if (file.isDir()) {
+    if (mutex_id) {
+        while (file.openNext(&dir)) {
+            if (file.isDir()) {
+                file.close();
+                continue;
+            }
+            file.getName(entry.name, sizeof(entry.name));
+            entry.size = file.fileSize();
             file.close();
-            continue;
+            return true;
         }
-        file.getName(entry.name, sizeof(entry.name));
-        entry.size = file.fileSize();
-        file.close();
-        return true;
     }
     return false;
 }
