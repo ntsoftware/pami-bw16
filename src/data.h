@@ -2,35 +2,6 @@
 
 #include "data_types.h"
 
-template <typename T>
-class DataBufferLock;
-
-template <typename T, size_t N>
-class DataBuffer {
-public:
-    const size_t LEN = N;
-    DataBuffer();
-    DataBufferLock<T> lock();
-private:
-    // semaphore id
-    T buf[N];
-};
-
-template <typename T>
-class DataBufferLock {
-public:
-    ~DataBufferLock();
-    T *ptr() const;
-    void release();
-private:
-    // semaphore id
-    T *_ptr;
-    DataBufferLock(T *ptr);
-
-    template <typename, size_t>
-    friend class DataBuffer;
-};
-
 struct DataFrame {
     struct Move {
         uint32_t t;
@@ -43,8 +14,8 @@ struct DataFrame {
         uint32_t t;
         uint16_t border_point_count;
         uint16_t obstacle_point_count;
-        DataBufferLock<Point2d> border_points;
-        DataBufferLock<Point2d> obstacle_points;
+        const Point2d *border_points;
+        const Point2d *obstacle_points;
     };
 
     struct EstimatedPose {
@@ -64,7 +35,7 @@ struct DataFrame {
     struct Path {
         uint32_t t;
         uint16_t point_count;
-        DataBufferLock<PathPoint> points;
+        const PathPoint *points;
     };
 
     struct Motor {
@@ -86,6 +57,7 @@ struct DataFrame {
 
     DataFrame();
     ~DataFrame();
+    void dump();
 };
 
 class Data {

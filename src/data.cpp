@@ -1,9 +1,18 @@
 #include "data.h"
+#include "data_types.h"
 #include "hal/teensy.h"
+#include "utils/debug.h"
 
-static DataBuffer<Point2d, 360> border_points;
-static DataBuffer<Point2d, 360> obstacle_points;
-static DataBuffer<PathPoint, 500> path_points;
+#define MAX_BORDER_POINTS 360
+#define MAX_OBSTACLE_POINTS 360
+#define MAX_PATH_POINTS 500
+
+static Point2d border_points[MAX_BORDER_POINTS];
+static Point2d obstacle_points[MAX_OBSTACLE_POINTS];
+static PathPoint path_points[MAX_PATH_POINTS];
+
+static void dump_points(const Point2d *points, size_t n);
+static void dump_path(const PathPoint *points, size_t n);
 
 static uint16_t min(uint16_t a, uint16_t b)
 {
@@ -82,21 +91,16 @@ bool Data::recv_scan_frame(DataFrame &out)
     if (!recv_u32(t)) return false;
     if (!recv_u16(border_point_count)) return false;
     if (!recv_u16(obstacle_point_count)) return false;
-
-    DataBufferLock<Point2d> border_points_lock = border_points.lock();
-    if (!recv_buf_with_size((uint8_t *) border_points_lock.ptr(), 4 * border_point_count, 4 * border_points.LEN)) return false;
-
-    DataBufferLock<Point2d> obstacle_points_lock = obstacle_points.lock();
-    if (!recv_buf_with_size((uint8_t *) obstacle_points_lock.ptr(), 4 * obstacle_point_count, 4 * obstacle_points.LEN)) return false;
-
+    if (!recv_buf_with_size((uint8_t *) border_points, 4 * border_point_count, 4 * MAX_BORDER_POINTS)) return false;
+    if (!recv_buf_with_size((uint8_t *) obstacle_points, 4 * obstacle_point_count, 4 * MAX_OBSTACLE_POINTS)) return false;
     if (!recv_frame_checksum()) return false;
 
     out.type = FRAME_TYPE_SCAN;
     out.scan.t = t;
-    out.scan.border_point_count = min(border_point_count, border_points.LEN);
-    out.scan.border_points = border_points_lock;
-    out.scan.obstacle_point_count = min(obstacle_point_count, obstacle_points.LEN);
-    out.scan.obstacle_points = obstacle_points_lock;
+    out.scan.border_point_count = min(border_point_count, MAX_BORDER_POINTS);
+    out.scan.obstacle_point_count = min(obstacle_point_count, MAX_OBSTACLE_POINTS);
+    out.scan.border_points = border_points;
+    out.scan.obstacle_points = obstacle_points;
     return true;
 }
 
@@ -149,16 +153,13 @@ bool Data::recv_path_frame(DataFrame &out)
 
     if (!recv_u32(t)) return false;
     if (!recv_u16(point_count)) return false;
-
-    DataBufferLock<PathPoint> points_lock = path_points.lock();
-    if (!recv_buf_with_size((uint8_t *) points_lock.ptr(), 2 * point_count, 2 * path_points.LEN)) return false;
-
+    if (!recv_buf_with_size((uint8_t *) path_points, 2 * point_count, 2 * MAX_PATH_POINTS)) return false;
     if (!recv_frame_checksum()) return false;
 
     out.type = FRAME_TYPE_PATH;
     out.path.t = t;
-    out.path.point_count = min(point_count, path_points.LEN);
-    out.path.points = points_lock;
+    out.path.point_count = min(point_count, MAX_PATH_POINTS);
+    out.path.points = path_points;
     return true;
 }
 
@@ -295,38 +296,79 @@ DataFrame::~DataFrame()
 {
 }
 
-template <typename T, size_t N>
-DataBuffer<T,N>::DataBuffer() : buf()
+void DataFrame::dump()
 {
-    // TODO: initialize semaphore
+    switch (type) {
+        case FRAME_TYPE_MOVE:
+            dbg.printf("[move frame]\n");
+            dbg.printf("t=%d\n", move.t);
+            dbg.printf("delta_x=%d\n", move.delta_x);
+            dbg.printf("delta_y=%d\n", move.delta_y);
+            dbg.printf("delta_theta=%d\n", move.delta_theta);
+            break;
+        case FRAME_TYPE_SCAN:
+            dbg.printf("[scan frame]\n");
+            dbg.printf("t=%d\n", scan.t);
+            dbg.printf("border_points=");
+            dump_points(scan.border_points, scan.border_point_count);
+            dbg.printf("\n");
+            dbg.printf("obstacle_points=");
+            dump_points(scan.obstacle_points, scan.obstacle_point_count);
+            dbg.printf("\n");
+            break;
+        case FRAME_TYPE_ESTIMATED_POSE:
+            dbg.printf("[estimated pose frame]\n");
+            dbg.printf("t=%d\n", estimated_pose.t);
+            dbg.printf("x=%d\n", estimated_pose.x);
+            dbg.printf("y=%d\n", estimated_pose.y);
+            dbg.printf("theta=%d\n", estimated_pose.theta);
+            break;
+        case FRAME_TYPE_CURRENT_POSE:
+            dbg.printf("[current pose frame]\n");
+            dbg.printf("t=%d\n", current_pose.t);
+            dbg.printf("x=%d\n", current_pose.x);
+            dbg.printf("y=%d\n", current_pose.y);
+            dbg.printf("theta=%d\n", current_pose.theta);
+            break;
+        case FRAME_TYPE_PATH:
+            dbg.printf("[path frame]\n");
+            dbg.printf("t=%d\n", estimated_pose.t);
+            dbg.printf("path_points=");
+            dump_path(path.points, path.point_count);
+            dbg.printf("\n");
+            break;
+        case FRAME_TYPE_MOTOR:
+            dbg.printf("[motor frame]\n");
+            dbg.printf("t=%d\n", motor.t);
+            dbg.printf("speed_a=%d\n", motor.speed_a);
+            dbg.printf("speed_b=%d\n", motor.speed_b);
+            dbg.printf("speed_c=%d\n", motor.speed_c);
+            break;
+        default:
+            dbg.printf("[unknown frame (%d)]\n", type);
+            break;
+    }
 }
 
-template <typename T, size_t N>
-DataBufferLock<T> DataBuffer<T,N>::lock()
+static void dump_points(const Point2d *points, size_t n)
 {
-    // TODO: acquire semaphore and move to lock object
-    return DataBufferLock<T>(buf);
+    dbg.printf("[");
+    for (size_t i = 0; i < n; ++i) {
+        dbg.printf("(x=%d,y=%d)", points[i].x, points[i].y);
+        if (i != n - 1)
+            dbg.printf(",");
+    }
+    dbg.printf("]");
 }
 
-template <typename T>
-DataBufferLock<T>::DataBufferLock(T *ptr) : _ptr(ptr)
+static void dump_path(const PathPoint *points, size_t n)
 {
-}
+    dbg.printf("[");
+    for (size_t i = 0; i < n; ++i) {
+        dbg.printf("(ix=%d,iy=%d)", points[i].ix, points[i].iy);
+        if (i != n - 1)
+            dbg.printf(",");
+    }
+    dbg.printf("]");
 
-template <typename T>
-DataBufferLock<T>::~DataBufferLock()
-{
-    release();
-}
-
-template <typename T>
-void DataBufferLock<T>::release()
-{
-    // TODO: release semaphore
-}
-
-template <typename T>
-T *DataBufferLock<T>::ptr() const
-{
-    return _ptr;
 }
