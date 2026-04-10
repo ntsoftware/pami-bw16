@@ -22,5 +22,9 @@ void hal::Teensy::send(const uint8_t *buf, size_t n, bool flush)
 
 int hal::Teensy::recv(uint8_t *buf, size_t n)
 {
+    // TODO: implement a timeout strategy
+    while (!Serial1.available()) {
+        osDelay(1);
+    }
     return Serial1.readBytes(buf, n);
 }

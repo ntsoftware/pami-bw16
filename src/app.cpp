@@ -11,6 +11,7 @@
 
 void task_heartbeat_start();
 void task_http_start();
+void task_capture_start();
 void task_time_start();
 void task_wifi_start();
 
@@ -45,6 +46,7 @@ void setup()
 
     task_heartbeat_start();
     task_http_start();
+    task_capture_start();
     task_time_start();
     task_wifi_start();
 }

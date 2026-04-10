@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <cmsis_os.h>
 
 namespace hal {
     class Teensy {
