@@ -37,7 +37,7 @@ void HTTP::do_get(const str &path, Response &response, hal::File &file)
     } else if (path.equals("/state")) {
         render_state(response);
         return;
-    } else if (hal::sd.open(path, file)) {
+    } else if (hal::sd.open(path, O_RDONLY, file)) {
         bool is_text = path.ends_with(".ini");
         Writer w(out, out_size);
         w.printf("HTTP/1.0 200 OK\r\n");

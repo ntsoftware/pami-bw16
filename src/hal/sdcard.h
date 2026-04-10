@@ -14,7 +14,9 @@ namespace hal {
         ~File();
         void close();
         size_t get_size() const;
-        int read(char *buf, size_t n);
+        int read(void *buf, size_t n);
+        int write(const void *buf, size_t n);
+        void sync();
     private:
         osMutexId mutex_id;
         FsFile file;
@@ -61,8 +63,10 @@ namespace hal {
         void begin();
         int read_file(const char *path, char *buf, size_t n);
         bool read_dir(const char *path, Dir &dir);
-        bool open(const str &path, File &file);
+        bool open(const str &path, int flags, File &file);
+        bool open(const char *path, int flags, File &file);
         bool rm(const str &path);
+        bool rm(const char *path);
 
     private:
         osMutexDef(mutex);

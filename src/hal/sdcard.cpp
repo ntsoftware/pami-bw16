@@ -12,7 +12,7 @@ hal::SdCard::SdCard()
 
 void hal::SdCard::begin()
 {
-    if (!fs.begin(SdSpiConfig(SPI_SS, DEDICATED_SPI, SD_SCK_MHZ(8), &spi))) {
+    if (!fs.begin(SdSpiConfig(SPI_SS, DEDICATED_SPI, SD_SCK_MHZ(16), &spi))) {
         dbg.printf("sdcard initialization failed (%d)\n", fs.sdErrorCode());
     }
     mutex_id = osMutexCreate(osMutex(mutex));
@@ -52,27 +52,38 @@ bool hal::SdCard::read_dir(const char *path, Dir &dir)
     return false;
 }
 
-bool hal::SdCard::open(const str &path, File &file)
+bool hal::SdCard::open(const str &path, int flags, File &file)
+{
+    char buf[16];
+    path.strncpy(buf, sizeof(buf));
+    return open(buf, flags, file);
+}
+
+bool hal::SdCard::open(const char *path, int flags, File &file)
 {
     if (lock()) {
-        char buf[16];
-        path.strncpy(buf, sizeof(buf));
-        if (file.file.open(buf)) {
+        if (file.file.open(path, flags)) {
             file.mutex_id = mutex_id;
             return true;
         }
         release();
     }
     return false;
+
 }
 
 bool hal::SdCard::rm(const str &path)
 {
+    char buf[16];
+    path.strncpy(buf, sizeof(buf));
+    return rm(buf);
+}
+
+bool hal::SdCard::rm(const char *path)
+{
     bool file_removed = false;
     if (lock()) {
-        char buf[16];
-        path.strncpy(buf, sizeof(buf));
-        file_removed = fs.remove(buf);
+        file_removed = fs.remove(path);
         release();
     }
     return file_removed;
@@ -136,12 +147,28 @@ size_t hal::File::get_size() const
     }
 }
 
-int hal::File::read(char *buf, size_t n)
+int hal::File::read(void *buf, size_t n)
 {
     if (mutex_id) {
         return file.read(buf, n);
     } else {
         return -1;
+    }
+}
+
+int hal::File::write(const void *buf, size_t n)
+{
+    if (mutex_id) {
+        return file.write(buf, n);
+    } else {
+        return -1;
+    }
+}
+
+void hal::File::sync()
+{
+    if (mutex_id) {
+        file.sync();
     }
 }
 
