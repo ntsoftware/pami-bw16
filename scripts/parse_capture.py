@@ -274,4 +274,4 @@ else:
 
 reader = Reader(f.read())
 capture = Capture.parse(reader)
-print(json.dumps(asdict(capture)))
+print(json.dumps(asdict(capture), indent=2))
