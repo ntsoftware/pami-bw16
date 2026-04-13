@@ -29,8 +29,8 @@ build-release:
 	arduino-cli compile \
 		--fqbn $(FQBN) \
 		--libraries libraries \
-		--build-property "compiler.c.extra_flags=-Isrc" \
-		--build-property "compiler.cpp.extra_flags=-Isrc" \
+		--build-property "compiler.c.extra_flags=-Isrc -Wno-type-limits" \
+		--build-property "compiler.cpp.extra_flags=-Isrc -Wno-type-limits" \
 		--build-path $(BUILD_RELEASE)
 
 build-debug: $(SOURCES)
@@ -38,8 +38,8 @@ build-debug: $(SOURCES)
 		--fqbn $(FQBN) \
 		--optimize-for-debug \
 		--libraries libraries \
-		--build-property "compiler.c.extra_flags=-Isrc" \
-		--build-property "compiler.cpp.extra_flags=-Isrc" \
+		--build-property "compiler.c.extra_flags=-Isrc -Wno-type-limits" \
+		--build-property "compiler.cpp.extra_flags=-Isrc -Wno-type-limits" \
 		--build-path $(BUILD_DEBUG)
 
 upload-release: build-release
