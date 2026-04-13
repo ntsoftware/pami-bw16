@@ -4,18 +4,9 @@
 #include "state.h"
 #include "utils/debug.h"
 
-static void task_wifi(const void *);
-static osThreadDef(task_wifi, osPriorityNormal, 1, 4096);
-
-void task_wifi_start()
+void task_wifi(const void *)
 {
-    if (!osThreadCreate(osThread(task_wifi), NULL)) {
-        dbg.printf("failed to create task_wifi\n");
-    }
-}
-
-static void task_wifi(const void *)
-{
+    dbg.printf("wifi: start task\n");
     while (1) {
         WiFi.config(cfg.local_ip, cfg.dns_ip, cfg.gateway_ip, cfg.subnet_mask);
         WiFi.setHostname(cfg.hostname);

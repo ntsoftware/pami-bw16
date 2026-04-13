@@ -7,24 +7,15 @@
 #include "hal/sdcard.h"
 #include "utils/debug.h"
 
-static void task_http(const void *);
-static osThreadDef(task_http, osPriorityNormal, 1, 4096);
-
 static char buffer[1024];
 
 static int read_to_buffer(WiFiClient &client);
 static int send_buffer(WiFiClient &client, const char *buf, size_t size);
 static int send_file(WiFiClient &client, hal::File &file);
 
-void task_http_start()
+void task_http(const void *)
 {
-    if (!osThreadCreate(osThread(task_http), NULL)) {
-        dbg.printf("failed to create task_http\n");
-    }
-}
-
-static void task_http(const void *)
-{
+    dbg.printf("http: start task\n");
     while (1) {
         while (state.wifi_is_down()) {
             osDelay(100);

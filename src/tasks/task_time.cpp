@@ -6,22 +6,11 @@
 #include "utils/debug.h"
 #include "utils/str.h"
 
-static void task_time(const void *);
-static osThreadDef(task_time, osPriorityNormal, 1, 4096);
-
-static char buffer[32];
-
 static int parse_time(const char *buf, size_t n);
 
-void task_time_start()
+void task_time(const void *)
 {
-    if (!osThreadCreate(osThread(task_time), NULL)) {
-        dbg.printf("failed to create task_time\n");
-    }
-}
-
-static void task_time(const void *)
-{
+    dbg.printf("time: start task\n");
     while (1) {
         while (state.wifi_is_down()) {
             osDelay(100);
@@ -34,9 +23,10 @@ static void task_time(const void *)
 
         while (state.wifi_is_up()) {
             if (server.parsePacket()) {
-                int n = server.read(buffer, sizeof(buffer));
+                char buf[32];
+                int n = server.read(buf, sizeof(buf));
                 if (n > 0) {
-                    int t = parse_time(buffer, n);
+                    int t = parse_time(buf, n);
                     if (t > 0) {
                         dbg.printf("time: %dms\n", t);
                         state.set_time(t);
