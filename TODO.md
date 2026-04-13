@@ -7,3 +7,5 @@
 - [ ] (2026-04-07) implement hal::TFT
 - [ ] (2026-04-07) implement hal::Touch
 - [ ] (2026-04-09) create a Task class and refactor task modules
+- [ ] (2026-04-13) implement a dedicated sdcard thread to enable sharing across threads
+- [ ] (2026-04-13) replace SdFat library by FatFS + example code
